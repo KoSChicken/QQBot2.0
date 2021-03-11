@@ -1,0 +1,15 @@
+logging:
+  level:
+    love:
+      forte:
+        simbot: debug
+
+simbot:
+  core:
+    bots:
+
+common:
+  path:
+    config: ./config/
+    image: ./resource/image/
+    voice: ./resource/voice/
