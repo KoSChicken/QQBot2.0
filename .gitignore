@@ -3,6 +3,9 @@
 *.
 cache
 target
+temp
+/config/*.txt
+*.properties
 
 # Created by https://www.toptal.com/developers/gitignore/api/java,jetbrains+iml,eclipse
 # Edit at https://www.toptal.com/developers/gitignore?templates=java,jetbrains+iml,eclipse
@@ -180,4 +183,3 @@ modules.xml
 *.ipr
 
 # End of https://www.toptal.com/developers/gitignore/api/java,jetbrains+iml,eclipse
-

@@ -1,5 +1,6 @@
 package io.koschicken;
 
+import io.koschicken.config.ExternalProperties;
 import io.koschicken.db.InitDatabase;
 import love.forte.simbot.spring.autoconfigure.EnableSimbot;
 import org.springframework.boot.SpringApplication;
@@ -16,6 +17,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class Application {
     public static void main(String[] args) {
+        ExternalProperties externalProperties = new ExternalProperties();
+        externalProperties.init();
         InitDatabase initDatabase = new InitDatabase();
         initDatabase.initDB();
         SpringApplication.run(Application.class, args);
