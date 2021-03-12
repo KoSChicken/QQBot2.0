@@ -1,4 +1,4 @@
-package simbot.example.listener;
+package io.koschicken.listener;
 
 import catcode.CatCodeUtil;
 import love.forte.common.ioc.annotation.Beans;

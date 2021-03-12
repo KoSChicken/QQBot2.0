@@ -1,4 +1,4 @@
-package simbot.example.listener;
+package io.koschicken.listener;
 
 import catcode.CatCodeUtil;
 import catcode.Neko;
@@ -6,14 +6,12 @@ import love.forte.common.ioc.annotation.Beans;
 import love.forte.simbot.annotation.Filter;
 import love.forte.simbot.annotation.OnGroup;
 import love.forte.simbot.api.message.MessageContent;
-import love.forte.simbot.api.message.MessageContentBuilderFactory;
 import love.forte.simbot.api.message.containers.GroupAccountInfo;
 import love.forte.simbot.api.message.containers.GroupInfo;
 import love.forte.simbot.api.message.events.GroupMsg;
 import love.forte.simbot.api.sender.Sender;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -37,16 +35,17 @@ import java.util.List;
 @Service
 public class MyGroupListen {
 
-    private static final Logger LOG = LoggerFactory.getLogger(MyGroupListen.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MyGroupListen.class);
 
-    /**
-     * 通过依赖注入获取一个 "消息正文构建器工厂"。
-     */
-    private final MessageContentBuilderFactory messageContentBuilderFactory;
-
-    @Autowired
-    public MyGroupListen(MessageContentBuilderFactory messageContentBuilderFactory) {
-        this.messageContentBuilderFactory = messageContentBuilderFactory;
+    @OnGroup
+    @Filter("xsp")
+    public void greetings(GroupMsg groupMsg, Sender sender) {
+        CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
+        File image = new File("./resource/image/1.jpg");
+        if (image.exists()) {
+            String cat = catCodeUtil.getStringTemplate().image(image.getAbsolutePath());
+            sender.sendGroupMsg(groupMsg, cat);
+        }
     }
 
     /**
@@ -56,7 +55,7 @@ public class MyGroupListen {
      * <p>
      * 由于你监听的是一个群消息，因此你可以通过 {@link GroupMsg} 作为参数来接收群消息内容。
      */
-    @OnGroup
+    //@OnGroup
     public void onGroupMsg(GroupMsg groupMsg) {
         // 打印此次消息中的 纯文本消息内容。
         // 纯文本消息中，不会包含任何特殊消息（例如图片、表情等）。
@@ -93,16 +92,5 @@ public class MyGroupListen {
         // 打印群号与名称
         System.out.println(groupInfo.getGroupCode());
         System.out.println(groupInfo.getGroupName());
-    }
-
-    @OnGroup
-    @Filter("xsp")
-    public void greetings(GroupMsg groupMsg, Sender sender) {
-        CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
-        File image = new File("./resource/image/1.jpg");
-        if (image.exists()) {
-            String cat = catCodeUtil.getStringTemplate().image(image.getAbsolutePath());
-            sender.sendGroupMsg(groupMsg, cat);
-        }
     }
 }

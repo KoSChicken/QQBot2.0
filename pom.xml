@@ -48,6 +48,13 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-logging</artifactId>
         </dependency>
+
+        <!-- SQLite驱动-->
+        <dependency>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>3.31.1</version>
+        </dependency>
     </dependencies>
 
     <build>
