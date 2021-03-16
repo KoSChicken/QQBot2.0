@@ -1,4 +1,4 @@
-package io.koschicken.annotation;
+package io.koschicken.intercept.limit;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -13,6 +13,11 @@ public @interface Limit {
      * 监听函数隔多久才能触发一次
      */
     long value();
+
+    /**
+     * 不能触发时的提示消息
+     */
+    String message() default "CD中...";
 
     /**
      * 时间类型，默认为秒
@@ -31,4 +36,10 @@ public @interface Limit {
      * 默认 true
      */
     boolean group() default true;
+
+    /**
+     * 如果可以区分bot，是否区分bot
+     * 默认 false
+     */
+    boolean bot() default false;
 }
