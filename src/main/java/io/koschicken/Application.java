@@ -17,10 +17,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class Application {
     public static void main(String[] args) {
-        ExternalProperties externalProperties = new ExternalProperties();
-        externalProperties.init();
         InitDatabase initDatabase = new InitDatabase();
         initDatabase.initDB();
+        ExternalProperties externalProperties = new ExternalProperties();
+        externalProperties.init();
+        InitConfig.initConfigs();
         SpringApplication.run(Application.class, args);
     }
 }

@@ -2,6 +2,7 @@ package io.koschicken.listener;
 
 import catcode.CatCodeUtil;
 import love.forte.common.ioc.annotation.Beans;
+import love.forte.simbot.annotation.Filter;
 import love.forte.simbot.annotation.OnPrivate;
 import love.forte.simbot.api.message.MessageContent;
 import love.forte.simbot.api.message.MessageContentBuilder;
@@ -10,6 +11,8 @@ import love.forte.simbot.api.message.events.PrivateMsg;
 import love.forte.simbot.api.sender.Sender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.io.File;
 
 /**
  * 私聊消息监听的示例类。
@@ -37,6 +40,17 @@ public class MyPrivateListen {
     @Autowired
     public MyPrivateListen(MessageContentBuilderFactory messageContentBuilderFactory) {
         this.messageContentBuilderFactory = messageContentBuilderFactory;
+    }
+
+    @OnPrivate
+    @Filter("xsp")
+    public void greetings(PrivateMsg privateMsg, Sender sender) {
+        CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
+        File image = new File("./resource/image/1.jpg");
+        if (image.exists()) {
+            String cat = catCodeUtil.getStringTemplate().image(image.getAbsolutePath());
+            sender.sendPrivateMsg(privateMsg, cat);
+        }
     }
 
     /**

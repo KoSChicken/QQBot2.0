@@ -2,7 +2,6 @@ package io.koschicken.intercept.limit;
 
 import love.forte.simbot.api.message.events.GroupMsg;
 import love.forte.simbot.api.message.events.MsgGet;
-import love.forte.simbot.api.message.events.PrivateMsg;
 import love.forte.simbot.api.sender.BotSender;
 import love.forte.simbot.bot.BotManager;
 import love.forte.simbot.intercept.InterceptionType;
@@ -16,6 +15,9 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * 魔改了1.x版本的LimitIntercept，增加了冷却提示
+ */
 @Service
 public class LimitIntercept implements ListenerInterceptor {
 
@@ -55,7 +57,7 @@ public class LimitIntercept implements ListenerInterceptor {
             final MsgGet msgGet = context.getMsgGet();
             final long time = limit.timeUnit().toMillis(limit.value());
             final boolean isGroup = limit.group() && msgGet instanceof GroupMsg;
-            final boolean isCode = limit.code() && msgGet instanceof PrivateMsg;
+            final boolean isCode = limit.code(); // 1.x的simbot里要判断能否获取到QQ号，当前版本的MsgGet.getAccountInfo不会返回null
             final boolean isBot = limit.bot();
             String groupCode = null;
             String code = null;
@@ -75,7 +77,7 @@ public class LimitIntercept implements ListenerInterceptor {
             }
             final String key = keyStringBuilder.toString();
             final ListenLimit listenLimit = limitMap.computeIfAbsent(key, h -> new ListenLimit(time));
-            if (!listenLimit.expired()) {
+            if (!listenLimit.expired() && limit.sendMsg()) {
                 sendMessage(isGroup, isCode, groupCode, code, limit.message());
                 return InterceptionType.BLOCK;
             } else {

@@ -15,6 +15,11 @@ public @interface Limit {
     long value();
 
     /**
+     * 不能触发时是否需要发送提示
+     */
+    boolean sendMsg() default true;
+
+    /**
      * 不能触发时的提示消息
      */
     String message() default "CD中...";

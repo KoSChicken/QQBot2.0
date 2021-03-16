@@ -1,11 +1,12 @@
 package io.koschicken.listener;
 
+import catcode.CatCodeUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import io.koschicken.annotation.Limit;
 import io.koschicken.bean.Pixiv;
 import io.koschicken.db.bean.Account;
 import io.koschicken.db.service.AccountService;
+import io.koschicken.intercept.limit.Limit;
 import io.koschicken.utils.SetuUtils;
 import love.forte.simbot.annotation.Filter;
 import love.forte.simbot.annotation.OnGroup;
@@ -13,6 +14,7 @@ import love.forte.simbot.api.message.events.GroupMsg;
 import love.forte.simbot.api.message.results.GroupMemberInfo;
 import love.forte.simbot.api.message.results.GroupMemberList;
 import love.forte.simbot.api.sender.MsgSender;
+import love.forte.simbot.filter.MatchType;
 import net.coobird.thumbnailator.Thumbnails;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomUtils;
@@ -26,7 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,7 +44,7 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Component
+@Service
 public class SetuListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(SetuListener.class);
     private static final String TEMP = "./temp/SETU/";
@@ -54,7 +56,6 @@ public class SetuListener {
     private static final String MEOW = "http://aws.random.cat/meow";
     private static final String UA = "User-Agent";
     private static final String UA_STRING = "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3";
-    private static final int CD = 20;
     private static final HashMap<String, Integer> NUMBER;
 
     static {
@@ -90,16 +91,19 @@ public class SetuListener {
 
     @Value("${setu.price}")
     private double price;
+    private final static long CD = 15;
 
-    // @Limit(CD)
+    @Limit(CD)
     @OnGroup
-    @Filter("叫[车車](.*)(.*)?(|r18)")
+    @Filter(value = "^叫[车車](.*)(.*)?(|r18)$", matchType = MatchType.REGEX_MATCHES)
     public void driver1(GroupMsg msg, MsgSender sender) {
         String qq = msg.getAccountInfo().getAccountCode();
         Account account = accountService.getById(qq);
+        CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
+        String at = catCodeUtil.getStringTemplate().at(qq);
         if (account == null) {
             createScore(qq);
-            //sender.SENDER.sendGroupMsg(msg, CQ_AT + qq + "]" + "你没钱了，请尝试签到或找开发者PY");
+            sender.SENDER.sendGroupMsg(msg, at + "你没钱了，请尝试签到或找开发者PY");
         } else {
             int i = RandomUtils.nextInt(1, 100);
             if (i <= 10) {
@@ -110,14 +114,17 @@ public class SetuListener {
         }
     }
 
+    @Limit(CD)
     @OnGroup
-    @Filter("来(.*?)[点丶份张張](.*?)的?(|r18)[色瑟涩][图圖]")
+    @Filter(value = "^来(.*?)[点丶份张張](.*?)的?(|r18)[色瑟涩][图圖]$", matchType = MatchType.REGEX_MATCHES)
     public void driver2(GroupMsg msg, MsgSender sender) {
         String qq = msg.getAccountInfo().getAccountCode();
         Account account = accountService.getById(qq);
         if (account == null) {
             createScore(qq);
-            //sender.SENDER.sendGroupMsg(msg, CQ_AT + qq + "]" + "你没钱了，请尝试签到或找开发者PY");
+            CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
+            String at = catCodeUtil.getStringTemplate().at(qq);
+            sender.SENDER.sendGroupMsg(msg, at + "你没钱了，请尝试签到或找开发者PY");
         } else {
             int i = RandomUtils.nextInt(1, 100);
             if (i <= 10) {
@@ -132,7 +139,8 @@ public class SetuListener {
         String groupCode = msg.getGroupInfo().getGroupCode();
         String accountCode = msg.getAccountInfo().getAccountCode();
         String message = msg.getMsg();
-        String regex = message.startsWith("叫") ? "叫[车車](.*)(.*)?(|r18)" : "来(.*?)[点點丶份张張](.*?)的?(|r18)[色瑟涩澀][图圖]";
+        String regex = message.startsWith("叫") ? "^叫[车車](.*)(.*)?(|r18)$" :
+                "^来(.*?)[点點丶份张張](.*?)的?(|r18)[色瑟涩澀][图圖]$";
         Pattern p = Pattern.compile(regex);
         Matcher m = p.matcher(message);
         int num = 1;
@@ -141,7 +149,7 @@ public class SetuListener {
         String number;
         while (m.find()) {
             // 兼容原有的叫车功能
-            if (message.startsWith("叫车")) {
+            if (message.startsWith("叫")) {
                 number = m.group(2).trim();
                 tag = m.group(1).trim();
             } else {
@@ -169,7 +177,9 @@ public class SetuListener {
             SendSetu sendSetu = new SendSetu(groupCode, accountCode, sender, tag, num, r18, account, accountService);
             sendSetu.start();
         } else {
-            // sender.SENDER.sendGroupMsg(msg, CQ_AT + msg + "]" + "你没钱了，请尝试签到或找开发者PY");
+            CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
+            String at = catCodeUtil.getStringTemplate().at(accountCode);
+            sender.SENDER.sendGroupMsg(msg, at + "你没钱了，请尝试签到或找开发者PY");
         }
     }
 
@@ -184,14 +194,17 @@ public class SetuListener {
         String uuid = UUID.randomUUID().toString();
         File file = new File(TEMP + uuid + fileSuffix);
         if (!Objects.equals(fileSuffix, ".gif")) {
-            Thumbnails.of(new URL(fileUrl.replace("https", "http"))).scale(1).outputQuality(0.25).toFile(file);
+            Thumbnails.of(new URL(fileUrl.replace("https", "http"))).scale(1)
+                    .outputQuality(0.25).toFile(file);
         } else {
             FileUtils.copyURLToFile(new URL(fileUrl.replace("https", "http")), file);
         }
-//        String image = kqCodeUtils.toCq(Constants.cqType.IMAGE, Constants.cqPrefix.FILE + file.getAbsolutePath());
-//        sender.SENDER.sendGroupMsg(msg, image);
+        CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
+        String image = catCodeUtil.getStringTemplate().image(file.getAbsolutePath());
+        sender.SENDER.sendGroupMsg(msg, image);
     }
 
+    @Limit(CD)
     @OnGroup
     @Filter(value = "#抽奖")
     public void luck(GroupMsg msg, MsgSender sender) throws IOException {
@@ -200,11 +213,12 @@ public class SetuListener {
         String uuid = UUID.randomUUID().toString();
         Path path = Paths.get(TEMP + uuid + ".jpg");
         Files.copy(content, path);
-//        String image = kqCodeUtils.toCq(Constants.cqType.IMAGE, Constants.cqPrefix.FILE + path.toAbsolutePath());
-//        sender.SENDER.sendGroupMsg(msg, image);
+        CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
+        String image = catCodeUtil.getStringTemplate().image(path.toFile().getAbsolutePath());
+        sender.SENDER.sendGroupMsg(msg, image);
     }
 
-    @Limit(CD * 6)
+    @Limit(CD * 4)
     @OnGroup
     @Filter(value = "#mjx")
     public void mjx(GroupMsg msg, MsgSender sender) throws IOException {
@@ -214,8 +228,9 @@ public class SetuListener {
         String uuid = UUID.randomUUID().toString();
         Path path = Paths.get(TEMP + uuid + ".jpg");
         Files.copy(content, path);
-//        String image = kqCodeUtils.toCq(Constants.cqType.IMAGE, Constants.cqPrefix.FILE + path.toAbsolutePath());
-//        sender.SENDER.sendGroupMsg(msg, image);
+        CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
+        String image = catCodeUtil.getStringTemplate().image(path.toFile().getAbsolutePath());
+        sender.SENDER.sendGroupMsg(msg, image);
     }
 
     private void createScore(String accountCode) {
@@ -232,9 +247,9 @@ public class SetuListener {
             InputStream imageStream = Request.Get(api).execute().returnResponse().getEntity().getContent();
             File pic = new File(TEMP + qq + System.currentTimeMillis() + ".jpg");
             FileUtils.copyInputStreamToFile(imageStream, pic);
-            // String image = kqCodeUtils.toCq(Constants.cqType.IMAGE, Constants.cqPrefix.FILE + pic.getAbsolutePath());
-            LOGGER.info(pic.getAbsolutePath());
-            // sender.SENDER.sendGroupMsg(msg, image);
+            CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
+            String image = catCodeUtil.getStringTemplate().image(pic.getAbsolutePath());
+            sender.SENDER.sendGroupMsg(msg, image);
             FileUtils.deleteQuietly(pic);
         } catch (IOException e) {
             e.printStackTrace();
@@ -306,7 +321,8 @@ public class SetuListener {
         private void sendPic(boolean fromLolicon, Pixiv p, String imageUrl, File compressedJPG) throws IOException {
             Thumbnails.of(new URL(imageUrl)).scale(1).outputQuality(0.25).toFile(compressedJPG);
             // 发送图片
-            String image = "";// kqCodeUtils.toCq(Constants.cqType.IMAGE, Constants.cqPrefix.FILE + compressedJPG.getAbsolutePath());
+            CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
+            String image = catCodeUtil.getStringTemplate().image(compressedJPG.getAbsolutePath());
             String message = image + "\n" +
                     p.getTitle() + "\n" +
                     ARTWORK_PREFIX + p.getArtwork() + "\n" +

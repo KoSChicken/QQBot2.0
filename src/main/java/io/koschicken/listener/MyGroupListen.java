@@ -1,13 +1,10 @@
 package io.koschicken.listener;
 
 import catcode.CatCodeUtil;
-import catcode.Neko;
+import io.koschicken.intercept.limit.Limit;
 import love.forte.common.ioc.annotation.Beans;
 import love.forte.simbot.annotation.Filter;
 import love.forte.simbot.annotation.OnGroup;
-import love.forte.simbot.api.message.MessageContent;
-import love.forte.simbot.api.message.containers.GroupAccountInfo;
-import love.forte.simbot.api.message.containers.GroupInfo;
 import love.forte.simbot.api.message.events.GroupMsg;
 import love.forte.simbot.api.sender.Sender;
 import org.slf4j.Logger;
@@ -15,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * 群消息监听的示例类。
@@ -37,9 +33,22 @@ public class MyGroupListen {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MyGroupListen.class);
 
+    @Limit(value = 10, message = "叫尼玛")
     @OnGroup
     @Filter("xsp")
     public void greetings(GroupMsg groupMsg, Sender sender) {
+        CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
+        File image = new File("./resource/image/1.jpg");
+        if (image.exists()) {
+            String cat = catCodeUtil.getStringTemplate().image(image.getAbsolutePath());
+            sender.sendGroupMsg(groupMsg, cat);
+        }
+    }
+
+    @Limit(value = 10, sendMsg = false)
+    @OnGroup
+    @Filter("xsp-cd")
+    public void greetings1(GroupMsg groupMsg, Sender sender) {
         CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
         File image = new File("./resource/image/1.jpg");
         if (image.exists()) {
@@ -55,7 +64,8 @@ public class MyGroupListen {
      * <p>
      * 由于你监听的是一个群消息，因此你可以通过 {@link GroupMsg} 作为参数来接收群消息内容。
      */
-    //@OnGroup
+    /*
+    @OnGroup
     public void onGroupMsg(GroupMsg groupMsg) {
         // 打印此次消息中的 纯文本消息内容。
         // 纯文本消息中，不会包含任何特殊消息（例如图片、表情等）。
@@ -69,11 +79,10 @@ public class MyGroupListen {
         // 获取此次消息中的 消息主体。
         // messageContent代表消息主体，其中通过可以获得 msg, 以及特殊消息列表。
         // 特殊消息列表为 List<Neko>, 其中，Neko是CAT码的封装类型。
-
         MessageContent msgContent = groupMsg.getMsgContent();
 
         // 打印消息主体
-        System.out.println(msgContent);
+        // System.out.println(msgContent);
         // 打印消息主体中的所有图片的链接（如果有的话）
         List<Neko> imageCats = msgContent.getCats("image");
         System.out.println("img counts: " + imageCats.size());
@@ -93,4 +102,5 @@ public class MyGroupListen {
         System.out.println(groupInfo.getGroupCode());
         System.out.println(groupInfo.getGroupName());
     }
+    */
 }
