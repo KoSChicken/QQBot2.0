@@ -61,7 +61,7 @@ public class SetuUtils {
         if (!StringUtils.isEmpty(tag)) {
             api += "&tag=" + tag;
         }
-        LOGGER.info("这次请求的地址为： {}", api);
+        LOGGER.info("这次请求的yuban1073地址： {}", api);
         ResponseHandler<String> myHandler = response -> EntityUtils.toString(response.getEntity(), Consts.UTF_8);
         String response = Request.Get(api).execute().handleResponse(myHandler);
         JSONObject jsonObject = JSON.parseObject(response);
@@ -70,7 +70,7 @@ public class SetuUtils {
             for (int i = 0; i < dataArray.size(); i++) {
                 Pixiv pixiv = new Pixiv();
                 JSONObject data = dataArray.getJSONObject(i);
-                fillPixiv(pixiv, data);
+                fillPixivYuban1073(pixiv, data);
                 pics.add(pixiv);
             }
         } else {
@@ -92,7 +92,7 @@ public class SetuUtils {
         if (r18 != null) {
             loliconApi += "&r18=" + (Boolean.TRUE.equals(r18) ? 1 : 2);
         }
-        LOGGER.info("这次请求的Lolicon地址为： {}", loliconApi);
+        LOGGER.info("这次请求的Lolicon地址： {}", loliconApi);
         ResponseHandler<String> myHandler = response -> EntityUtils.toString(response.getEntity(), Consts.UTF_8);
         String response = Request.Get(loliconApi).execute().handleResponse(myHandler);
         JSONObject jsonObject = JSON.parseObject(response);
@@ -116,7 +116,7 @@ public class SetuUtils {
         return pics;
     }
 
-    private static void fillPixiv(Pixiv pixiv, JSONObject data) {
+    private static void fillPixivYuban1073(Pixiv pixiv, JSONObject data) {
         pixiv.setTitle(data.getString("title"));
         String artwork = data.getString("artwork");
         pixiv.setArtwork(artwork);
@@ -126,8 +126,11 @@ public class SetuUtils {
         pixiv.setType(data.getString("type"));
         pixiv.setFileName(data.getString("filename"));
         String url = data.getString("original");
-        pixiv.setOriginal(getPixivCatUrl(url, artwork));
+        String pixivCatUrl = getPixivCatUrl(url, artwork);
+        pixiv.setOriginal(pixivCatUrl);
         pixiv.setR18("porn".equals(data.getString("type")));
+        LOGGER.info("这次请求到的图片url： {}", data.getString("original"));
+        LOGGER.info("代理后的图片url： {}", pixivCatUrl);
     }
 
     private static void fillPixivLolicon(Pixiv pixiv, JSONObject data) {
@@ -143,6 +146,8 @@ public class SetuUtils {
         pixiv.setOriginal(pixivCatUrl);
         pixiv.setFileName(url.substring(url.lastIndexOf("/") + 1));
         pixiv.setR18(Boolean.parseBoolean(data.getString("r18")));
+        LOGGER.info("这次请求到的图片url： {}", data.getString("url"));
+        LOGGER.info("代理后的图片url： {}", pixivCatUrl);
     }
 
     private static String getPixivCatUrl(String url, String pid) {

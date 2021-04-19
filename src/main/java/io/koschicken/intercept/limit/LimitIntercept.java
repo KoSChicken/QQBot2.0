@@ -63,7 +63,7 @@ public class LimitIntercept implements ListenerInterceptor {
             String code = null;
 
             final StringBuilder keyStringBuilder = new StringBuilder(estimatedLength(listenerFunction, isGroup, isCode, isBot));
-            keyStringBuilder.append(limit.toString()).append(listenerFunction.toString());
+            keyStringBuilder.append(limit).append(listenerFunction);
             if (isGroup) {
                 groupCode = ((GroupMsg) msgGet).getGroupInfo().getGroupCode();
                 keyStringBuilder.append(groupCode);

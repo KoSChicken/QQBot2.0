@@ -91,7 +91,7 @@ public class SetuListener {
 
     @Value("${setu.price}")
     private double price;
-    private final static long CD = 15;
+    private final static long CD = 30;
 
     @Limit(CD)
     @OnGroup
@@ -99,18 +99,14 @@ public class SetuListener {
     public void driver1(GroupMsg msg, MsgSender sender) {
         String qq = msg.getAccountInfo().getAccountCode();
         Account account = accountService.getById(qq);
-        CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
-        String at = catCodeUtil.getStringTemplate().at(qq);
         if (account == null) {
-            createScore(qq);
-            sender.SENDER.sendGroupMsg(msg, at + "你没钱了，请尝试签到或找开发者PY");
+            account = createScore(qq);
+        }
+        int i = RandomUtils.nextInt(1, 100);
+        if (i <= 25) {
+            sender.SENDER.sendGroupMsg(msg, "累了，不想发车。");
         } else {
-            int i = RandomUtils.nextInt(1, 100);
-            if (i <= 10) {
-                sender.SENDER.sendGroupMsg(msg, "累了，不想发车。");
-            } else {
-                sendPic(msg, sender, account);
-            }
+            sendPic(msg, sender, account);
         }
     }
 
@@ -121,17 +117,13 @@ public class SetuListener {
         String qq = msg.getAccountInfo().getAccountCode();
         Account account = accountService.getById(qq);
         if (account == null) {
-            createScore(qq);
-            CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
-            String at = catCodeUtil.getStringTemplate().at(qq);
-            sender.SENDER.sendGroupMsg(msg, at + "你没钱了，请尝试签到或找开发者PY");
+            account = createScore(qq);
+        }
+        int i = RandomUtils.nextInt(1, 100);
+        if (i <= 25) {
+            sender.SENDER.sendGroupMsg(msg, "累了，不想发车。");
         } else {
-            int i = RandomUtils.nextInt(1, 100);
-            if (i <= 10) {
-                sender.SENDER.sendGroupMsg(msg, "累了，不想发车。");
-            } else {
-                sendPic(msg, sender, account);
-            }
+            sendPic(msg, sender, account);
         }
     }
 
@@ -233,12 +225,13 @@ public class SetuListener {
         sender.SENDER.sendGroupMsg(msg, image);
     }
 
-    private void createScore(String accountCode) {
+    private Account createScore(String accountCode) {
         Account account = new Account();
         account.setSignFlag(false);
         account.setAccount(accountCode);
-        account.setCoin(0L);
+        account.setCoin(10000L);
         accountService.save(account);
+        return account;
     }
 
     private void groupMember(GroupMsg msg, MsgSender sender, String qq) {
