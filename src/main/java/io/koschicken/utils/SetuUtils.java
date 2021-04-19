@@ -141,6 +141,7 @@ public class SetuUtils {
         String url = data.getString("url");
         String pixivCatUrl = getPixivCatUrl(url, pid);
         pixiv.setOriginal(pixivCatUrl);
+        pixiv.setFileName(url.substring(url.lastIndexOf("/") + 1));
         pixiv.setR18(Boolean.parseBoolean(data.getString("r18")));
     }
 
