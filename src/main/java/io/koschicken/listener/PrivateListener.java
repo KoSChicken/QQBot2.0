@@ -30,7 +30,7 @@ import java.io.File;
  * @author ForteScarlet
  */
 @Service
-public class MyPrivateListen {
+public class PrivateListener {
 
     /**
      * 通过依赖注入获取一个 "消息正文构建器工厂"。
@@ -38,7 +38,7 @@ public class MyPrivateListen {
     private final MessageContentBuilderFactory messageContentBuilderFactory;
 
     @Autowired
-    public MyPrivateListen(MessageContentBuilderFactory messageContentBuilderFactory) {
+    public PrivateListener(MessageContentBuilderFactory messageContentBuilderFactory) {
         this.messageContentBuilderFactory = messageContentBuilderFactory;
     }
 
@@ -46,7 +46,7 @@ public class MyPrivateListen {
     @Filter("xsp")
     public void greetings(PrivateMsg privateMsg, Sender sender) {
         CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
-        File image = new File("./resource/image/1.jpg");
+        File image = new File("./resource/image/greeting.jpg");
         if (image.exists()) {
             String cat = catCodeUtil.getStringTemplate().image(image.getAbsolutePath());
             sender.sendPrivateMsg(privateMsg, cat);

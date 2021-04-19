@@ -1,7 +1,6 @@
 package io.koschicken.listener;
 
 import catcode.CatCodeUtil;
-import io.koschicken.intercept.limit.Limit;
 import love.forte.common.ioc.annotation.Beans;
 import love.forte.simbot.annotation.Filter;
 import love.forte.simbot.annotation.OnGroup;
@@ -29,28 +28,15 @@ import java.io.File;
  * @author ForteScarlet
  */
 @Service
-public class MyGroupListen {
+public class GroupListener {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MyGroupListen.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(GroupListener.class);
 
-    @Limit(value = 10, message = "叫尼玛")
     @OnGroup
     @Filter("xsp")
     public void greetings(GroupMsg groupMsg, Sender sender) {
         CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
-        File image = new File("./resource/image/1.jpg");
-        if (image.exists()) {
-            String cat = catCodeUtil.getStringTemplate().image(image.getAbsolutePath());
-            sender.sendGroupMsg(groupMsg, cat);
-        }
-    }
-
-    @Limit(value = 10, sendMsg = false)
-    @OnGroup
-    @Filter("xsp-cd")
-    public void greetings1(GroupMsg groupMsg, Sender sender) {
-        CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
-        File image = new File("./resource/image/1.jpg");
+        File image = new File("./resource/image/greeting.jpg");
         if (image.exists()) {
             String cat = catCodeUtil.getStringTemplate().image(image.getAbsolutePath());
             sender.sendGroupMsg(groupMsg, cat);

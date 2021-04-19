@@ -46,7 +46,6 @@ public class SetuUtils {
             // 否则请求yuban
             return fetchFromYuban1073(num, tag, r18);
         }
-        // return fetchFromLolicon(num, tag, r18);
     }
 
     private static List<Pixiv> fetchFromYuban1073(int num, String tag, Boolean r18) throws IOException {
@@ -86,7 +85,7 @@ public class SetuUtils {
     private static List<Pixiv> fetchFromLolicon(int num, String tag, Boolean r18) throws IOException {
         List<Pixiv> pics = new ArrayList<>();
         String apikey = ""; // TODO 设计一个获取私有配置的方法
-        String loliconApi = LOLICONAPI + "?apikey=" + apikey + "&r18=2&size1200=true&num=" + num;
+        String loliconApi = LOLICONAPI + "?proxy=disable&apikey=" + apikey + "&r18=2&size1200=true&num=" + num;
         if (!StringUtils.isEmpty(tag)) {
             loliconApi += "&keyword=" + tag;
         }
@@ -119,25 +118,49 @@ public class SetuUtils {
 
     private static void fillPixiv(Pixiv pixiv, JSONObject data) {
         pixiv.setTitle(data.getString("title"));
-        pixiv.setArtwork(data.getString("artwork"));
+        String artwork = data.getString("artwork");
+        pixiv.setArtwork(artwork);
         pixiv.setAuthor(data.getString("author"));
         pixiv.setArtist(data.getString("artist"));
         pixiv.setTags(data.getString("tags").split(","));
         pixiv.setType(data.getString("type"));
         pixiv.setFileName(data.getString("filename"));
-        pixiv.setOriginal(data.getString("original").replace("pximg.net", "pixiv.cat"));
+        String url = data.getString("original");
+        pixiv.setOriginal(getPixivCatUrl(url, artwork));
         pixiv.setR18("porn".equals(data.getString("type")));
     }
 
     private static void fillPixivLolicon(Pixiv pixiv, JSONObject data) {
         pixiv.setTitle(data.getString("title"));
-        pixiv.setArtwork(data.getString("pid"));
+        String pid = data.getString("pid");
+        pixiv.setArtwork(pid);
         pixiv.setAuthor(data.getString("author"));
         pixiv.setArtist(data.getString("uid"));
         pixiv.setTags(data.getString("tags").split(","));
         pixiv.setType(Boolean.TRUE.equals(data.getBoolean("r18")) ? "r18" : "normal");
-        pixiv.setFileName(data.getString("url").substring(data.getString("url").lastIndexOf("/") + 1));
-        pixiv.setOriginal(data.getString("url"));
+        String url = data.getString("url");
+        String pixivCatUrl = getPixivCatUrl(url, pid);
+        pixiv.setOriginal(pixivCatUrl);
         pixiv.setR18(Boolean.parseBoolean(data.getString("r18")));
+    }
+
+    private static String getPixivCatUrl(String url, String pid) {
+        String filename = url.substring(url.lastIndexOf("/") + 1);
+        String suffix = filename.substring(filename.lastIndexOf("."));
+        String index = filename.replace(pid + "_p", "").replace(suffix, "");
+        if ("0".equals(index)) {
+            return "https://pixiv.cat/" + pid + suffix;
+        } else {
+            return "https://pixiv.cat/" + pid + "-" + index + suffix;
+        }
+    }
+
+    public static void main(String[] args) {
+        String testUrl1 = "https://i.pximg.net/img-original/img/2020/06/04/19/56/42/82086302_p0.jpg";
+        String testUrl2 = "https://i.pximg.net/img-original/img/2018/12/22/14/29/19/72225268_p6.jpg";
+        String pixivCatUrl = getPixivCatUrl(testUrl1, "82086302");
+        System.out.println(pixivCatUrl);
+        String pixivCatUrl1 = getPixivCatUrl(testUrl2, "72225268");
+        System.out.println(pixivCatUrl1);
     }
 }
