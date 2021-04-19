@@ -103,7 +103,7 @@ public class SetuListener {
             account = createScore(qq);
         }
         int i = RandomUtils.nextInt(1, 100);
-        if (i <= 25) {
+        if (i <= 10) {
             sender.SENDER.sendGroupMsg(msg, "累了，不想发车。");
         } else {
             sendPic(msg, sender, account);
@@ -120,7 +120,7 @@ public class SetuListener {
             account = createScore(qq);
         }
         int i = RandomUtils.nextInt(1, 100);
-        if (i <= 25) {
+        if (i <= 10) {
             sender.SENDER.sendGroupMsg(msg, "累了，不想发车。");
         } else {
             sendPic(msg, sender, account);
