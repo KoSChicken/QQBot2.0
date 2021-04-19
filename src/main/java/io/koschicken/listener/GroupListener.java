@@ -43,6 +43,12 @@ public class GroupListener {
         }
     }
 
+    @OnGroup
+    @Filter("贵族叫车")
+    public void callAnotherBot(GroupMsg groupMsg, Sender sender) {
+        sender.sendGroupMsg(groupMsg, "/hso");
+    }
+
     /**
      * 此监听函数代表，收到消息的时候，将消息的各种信息打印出来。
      * <p>

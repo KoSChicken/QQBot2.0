@@ -116,7 +116,7 @@ public class SetuUtils {
         return pics;
     }
 
-    private static void fillPixivYuban1073(Pixiv pixiv, JSONObject data) {
+    private static void fillPixivYuban1073(Pixiv pixiv, JSONObject data) throws IOException {
         pixiv.setTitle(data.getString("title"));
         String artwork = data.getString("artwork");
         pixiv.setArtwork(artwork);
@@ -133,7 +133,7 @@ public class SetuUtils {
         LOGGER.info("代理后的图片url： {}", pixivCatUrl);
     }
 
-    private static void fillPixivLolicon(Pixiv pixiv, JSONObject data) {
+    private static void fillPixivLolicon(Pixiv pixiv, JSONObject data) throws IOException {
         pixiv.setTitle(data.getString("title"));
         String pid = data.getString("pid");
         pixiv.setArtwork(pid);
@@ -150,23 +150,36 @@ public class SetuUtils {
         LOGGER.info("代理后的图片url： {}", pixivCatUrl);
     }
 
-    private static String getPixivCatUrl(String url, String pid) {
+    private static String getPixivCatUrl(String url, String pid) throws IOException {
         String filename = url.substring(url.lastIndexOf("/") + 1);
         String suffix = filename.substring(filename.lastIndexOf("."));
         String index = filename.replace(pid + "_p", "").replace(suffix, "");
         if ("0".equals(index)) {
-            return "https://pixiv.cat/" + pid + suffix;
+            String catUrl = "https://pixiv.cat/" + pid + suffix;
+            if (checkUrl(catUrl)) {
+                return catUrl;
+            } else {
+                return "https://pixiv.cat/" + pid + "-1" + suffix;
+            }
         } else {
             return "https://pixiv.cat/" + pid + "-" + index + suffix;
         }
     }
 
-    public static void main(String[] args) {
+    private static boolean checkUrl(String url) throws IOException {
+        int statusCode = Request.Get(url).execute().returnResponse().getStatusLine().getStatusCode();
+        return statusCode != 404;
+    }
+
+    public static void main(String[] args) throws IOException {
         String testUrl1 = "https://i.pximg.net/img-original/img/2020/06/04/19/56/42/82086302_p0.jpg";
         String testUrl2 = "https://i.pximg.net/img-original/img/2018/12/22/14/29/19/72225268_p6.jpg";
         String pixivCatUrl = getPixivCatUrl(testUrl1, "82086302");
         System.out.println(pixivCatUrl);
         String pixivCatUrl1 = getPixivCatUrl(testUrl2, "72225268");
         System.out.println(pixivCatUrl1);
+        String failUrl = "https://i.pximg.net/img-original/img/2020/08/29/20/52/59/84014034_p0.jpg";
+        String pixivCatUrl2 = getPixivCatUrl(failUrl, "84014034");
+        System.out.println(pixivCatUrl2);
     }
 }
