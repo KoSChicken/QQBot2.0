@@ -40,7 +40,7 @@ public class InitConfig {
 
     //加载配置文件
     public static void getFile() {
-        File file = new File(CONFIG_DIR + "/config.txt");
+        File file = new File(CONFIG_DIR + "/config.json");
         //群组设定
         if (!file.exists() || !file.isFile()) {
             //没有读取到配置文件
@@ -163,7 +163,7 @@ public class InitConfig {
         GameConstants.HORSE_EVENT = new HorseEvent();
         String jsonObject = JSON.toJSONString(GameConstants.HORSE_EVENT);
         try {
-            File file = new File(CONFIG_DIR + "/事件.txt");
+            File file = new File(CONFIG_DIR + "/事件.json");
             if (!file.exists() || !file.isFile()) {
                 if (file.createNewFile()) {
                     FileUtils.write(file, jsonObject, "utf-8");
@@ -183,7 +183,7 @@ public class InitConfig {
     //读扭蛋信息
     public static synchronized void getGachaConfig() {
         try {
-            File file = new File(CONFIG_DIR + "/扭蛋.txt");
+            File file = new File(CONFIG_DIR + "/扭蛋.json");
             if (!file.exists() || !file.isFile()) {
                 if (file.createNewFile()) {
                     //准备内置的转蛋信息写入内存

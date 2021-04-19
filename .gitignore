@@ -5,6 +5,7 @@ cache
 target
 temp
 /config/*.txt
+/config/*.json
 *.properties
 
 # Created by https://www.toptal.com/developers/gitignore/api/java,jetbrains+iml,eclipse

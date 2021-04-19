@@ -18,6 +18,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static io.koschicken.constants.Constants.COMMON_CONFIG;
+
 public class SetuUtils {
     private static final String YUBAN1073API = "http://api.yuban10703.xyz:2333/setu_v4";
     private static final String LOLICONAPI = "https://api.lolicon.app/setu/";
@@ -84,7 +86,8 @@ public class SetuUtils {
 
     private static List<Pixiv> fetchFromLolicon(int num, String tag, Boolean r18) throws IOException {
         List<Pixiv> pics = new ArrayList<>();
-        String apikey = ""; // TODO 设计一个获取私有配置的方法
+        // String apikey = ""; // TODO 设计一个获取私有配置的方法
+        String apikey = COMMON_CONFIG.getLoliconApiKey();
         String loliconApi = LOLICONAPI + "?proxy=disable&apikey=" + apikey + "&r18=2&size1200=true&num=" + num;
         if (!StringUtils.isEmpty(tag)) {
             loliconApi += "&keyword=" + tag;

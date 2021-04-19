@@ -105,7 +105,7 @@ public class BotIntercept implements MsgInterceptor {
     private synchronized void setJson(Map<String, GroupPower> map) {
         String jsonObject = JSON.toJSONString(map);
         try {
-            File file = new File(CONFIG_DIR + "/config.txt");
+            File file = new File(CONFIG_DIR + "/config.json");
             if (!file.exists() || !file.isFile()) {
                 FileUtils.touch(file);
             }
