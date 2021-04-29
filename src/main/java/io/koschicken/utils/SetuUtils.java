@@ -86,7 +86,6 @@ public class SetuUtils {
 
     private static List<Pixiv> fetchFromLolicon(int num, String tag, Boolean r18) throws IOException {
         List<Pixiv> pics = new ArrayList<>();
-        // String apikey = ""; // TODO 设计一个获取私有配置的方法
         String apikey = COMMON_CONFIG.getLoliconApiKey();
         String loliconApi = LOLICONAPI + "?proxy=disable&apikey=" + apikey + "&r18=2&size1200=true&num=" + num;
         if (!StringUtils.isEmpty(tag)) {

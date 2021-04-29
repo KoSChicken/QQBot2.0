@@ -78,7 +78,7 @@ public class InitConfig {
                 e.printStackTrace();
             }
             COMMON_CONFIG = new CommonConfig();
-            COMMON_CONFIG.setMaiyaoPic("买药.png");
+            COMMON_CONFIG.setMaiyaoPic("shop.png");
             COMMON_CONFIG.setGachaLimit(300);
             COMMON_CONFIG.setGachaCooldown(10);
             COMMON_CONFIG.setGlobalSwitch(false);
@@ -102,8 +102,8 @@ public class InitConfig {
     public static void freshConfig(File file) throws IOException {
         OutputStreamWriter outputStream = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8);
         SafeProperties pro = new SafeProperties();
-        pro.addComment("这个图片应和jar在同一文件夹下");
-        pro.setProperty("提醒买药小助手图片名", "买药.png");
+        pro.addComment("图片路径是resources/image");
+        pro.setProperty("提醒买药小助手图片名", "shop.png");
         pro.setProperty("抽卡上限", "1000");
         pro.addComment("每次抽卡中间所需的冷却时间，单位为秒");
         pro.setProperty("抽卡冷却", "5");

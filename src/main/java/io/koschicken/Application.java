@@ -5,6 +5,7 @@ import io.koschicken.db.InitDatabase;
 import love.forte.simbot.spring.autoconfigure.EnableSimbot;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * 启动类。
@@ -15,6 +16,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  */
 @EnableSimbot
 @SpringBootApplication
+@EnableScheduling
 public class Application {
     public static void main(String[] args) {
         InitDatabase initDatabase = new InitDatabase();

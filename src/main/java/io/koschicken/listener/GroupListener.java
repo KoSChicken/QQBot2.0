@@ -6,6 +6,7 @@ import love.forte.simbot.annotation.Filter;
 import love.forte.simbot.annotation.OnGroup;
 import love.forte.simbot.api.message.events.GroupMsg;
 import love.forte.simbot.api.sender.Sender;
+import org.apache.commons.lang3.RandomUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -36,7 +37,8 @@ public class GroupListener {
     @Filter("xsp")
     public void greetings(GroupMsg groupMsg, Sender sender) {
         CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
-        File image = new File("./resource/image/greeting.jpg");
+        int index = RandomUtils.nextInt(0, 4);
+        File image = new File("./resource/image/greeting" + index + ".jpg");
         if (image.exists()) {
             String cat = catCodeUtil.getStringTemplate().image(image.getAbsolutePath());
             sender.sendGroupMsg(groupMsg, cat);
