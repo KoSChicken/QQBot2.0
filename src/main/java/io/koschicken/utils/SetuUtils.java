@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -61,7 +62,7 @@ public class SetuUtils {
         }
         api += "&type=" + type;
         if (!StringUtils.isEmpty(tag)) {
-            api += "&tag=" + tag;
+            api += "&tag=" + URLEncoder.encode(tag, "UTF-8");
         }
         LOGGER.info("这次请求的yuban1073地址： {}", api);
         ResponseHandler<String> myHandler = response -> EntityUtils.toString(response.getEntity(), Consts.UTF_8);
@@ -89,7 +90,7 @@ public class SetuUtils {
         String apikey = COMMON_CONFIG.getLoliconApiKey();
         String loliconApi = LOLICONAPI + "?proxy=disable&apikey=" + apikey + "&r18=2&size1200=true&num=" + num;
         if (!StringUtils.isEmpty(tag)) {
-            loliconApi += "&keyword=" + tag;
+            loliconApi += "&keyword=" + URLEncoder.encode(tag, "UTF-8");
         }
         if (r18 != null) {
             loliconApi += "&r18=" + (Boolean.TRUE.equals(r18) ? 1 : 2);

@@ -37,10 +37,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -91,6 +88,9 @@ public class SetuListener {
 
     @Value("${setu.price}")
     private double price;
+    @Value("${setu.tags}")
+    private String tags;
+
     private final static long CD = 30;
 
     @Limit(CD)
@@ -275,40 +275,54 @@ public class SetuListener {
         public void run() {
             int sendCount = 0; // 记录实际发送的图片张数
             try {
-                List<Pixiv> setu = SetuUtils.getSetu(tag, num, r18);
-                Pixiv pixiv = setu.get(0);
-                String code = pixiv.getCode();
-                boolean fromLolicon = "0".equals(code);
-                if ("200".equals(code) || fromLolicon || Objects.isNull(code)) {
-                    for (Pixiv p : setu) {
-                        String filename = p.getFileName();
-                        String imageUrl = p.getOriginal();
-                        File compressedJPG = new File(TEMP + filename.replace("png", "jpg"));
-                        if (!compressedJPG.exists() || System.currentTimeMillis() - compressedJPG.lastModified() > 60 * 60 * 1000) {
-                            // 图片1小时内没发过才会发
-                            sendPic(fromLolicon, p, imageUrl, compressedJPG);
-                            sendCount++;
-                        } else {
-                            if (!p.isR18()) {
-                                LOGGER.info("------- 图片名称：{}", filename);
-                                sender.SENDER.sendGroupMsg(groupCode, "含有 " + tag + " 的车已经发完了");
+                if (!tagCheck(tag)) {
+                    List<Pixiv> setu = SetuUtils.getSetu(tag, num, r18);
+                    Pixiv pixiv = setu.get(0);
+                    String code = pixiv.getCode();
+                    boolean fromLolicon = "0".equals(code);
+                    if ("200".equals(code) || fromLolicon || Objects.isNull(code)) {
+                        for (Pixiv p : setu) {
+                            String filename = p.getFileName();
+                            String imageUrl = p.getOriginal();
+                            File compressedJPG = new File(TEMP + filename.replace("png", "jpg"));
+                            if (!compressedJPG.exists() || System.currentTimeMillis() - compressedJPG.lastModified() > 60 * 60 * 1000) {
+                                // 图片1小时内没发过才会发
+                                sendPic(fromLolicon, p, imageUrl, compressedJPG);
+                                sendCount++;
+                            } else {
+                                if (!p.isR18()) {
+                                    LOGGER.info("------- 图片名称：{}", filename);
+                                    sender.SENDER.sendGroupMsg(groupCode, "含有 " + tag + " 的车已经发完了");
+                                }
+                                return;
                             }
-                            return;
+                        }
+                        account.setCoin((long) (account.getCoin() - price * sendCount));
+                        thisAccountService.updateById(account); // 按照实际发送的张数来扣除叫车者的币
+                    } else {
+                        if (StringUtils.isEmpty(groupCode)) {
+                            sender.SENDER.sendPrivateMsg(privateQQ, "冇");
+                        } else {
+                            sender.SENDER.sendGroupMsg(groupCode, "冇");
                         }
                     }
-                    account.setCoin((long) (account.getCoin() - price * sendCount));
-                    thisAccountService.updateById(account); // 按照实际发送的张数来扣除叫车者的币
                 } else {
+                    String first = tag.trim().substring(0, 1);
                     if (StringUtils.isEmpty(groupCode)) {
-                        sender.SENDER.sendPrivateMsg(privateQQ, "冇");
+                        sender.SENDER.sendPrivateMsg(privateQQ, first + "nmlgb");
                     } else {
-                        sender.SENDER.sendGroupMsg(groupCode, "冇");
+                        sender.SENDER.sendGroupMsg(groupCode, first + "nmlgb");
                     }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
                 sender.SENDER.sendGroupMsg(groupCode, "炸了");
             }
+        }
+
+        private boolean tagCheck(String tag) {
+            List<String> tagList = Arrays.asList(tags.split(","));
+            return RandomUtils.nextInt(1, 100) <= 5 && tagList.contains(tag);
         }
 
         private void sendPic(boolean fromLolicon, Pixiv p, String imageUrl, File compressedJPG) throws IOException {
