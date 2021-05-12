@@ -31,6 +31,7 @@ public class ExternalProperties {
         File file = new File(externalPropFile);
         if (!file.exists()) {
             FileUtils.touch(file);
+            initDefaultProperties(properties, file);
         }
         try (InputStreamReader in = new InputStreamReader(new FileInputStream(externalPropFile), StandardCharsets.UTF_8)) {
             properties.load(in);
@@ -42,6 +43,27 @@ public class ExternalProperties {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void initDefaultProperties(Properties properties, File file) {
+        try (InputStreamReader in = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
+            properties.load(in);
+            storeProp(properties, file, "setu.price", "0", "### 涩图价格");
+            storeProp(properties, file, "setu.tags", "", "### 会触发bot嘴臭的tag");
+            storeProp(properties, file, "cygames.delay", "60", "### 猜语音游戏公布答案的时间");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void storeProp(Properties properties, File file, String propKey, String propValue, String propComment) throws IOException {
+        String prop = properties.getProperty(propKey);
+        if (prop == null) {
+            try (OutputStreamWriter op = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)) {
+                properties.setProperty(propKey, propValue);
+                properties.store(op, propComment);
+            }
         }
     }
 

@@ -322,7 +322,7 @@ public class SetuListener {
 
         private boolean tagCheck(String tag) {
             List<String> tagList = Arrays.asList(tags.split(","));
-            return RandomUtils.nextInt(1, 100) <= 5 && tagList.contains(tag);
+            return RandomUtils.nextInt(1, 100) <= 10 && tagList.contains(tag);
         }
 
         private void sendPic(boolean fromLolicon, Pixiv p, String imageUrl, File compressedJPG) throws IOException {
