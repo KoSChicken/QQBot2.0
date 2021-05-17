@@ -41,6 +41,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static io.koschicken.constants.Constants.COMMON_CONFIG;
+
 @Service
 public class SetuListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(SetuListener.class);
@@ -88,8 +90,6 @@ public class SetuListener {
 
     @Value("${setu.price}")
     private double price;
-    @Value("${setu.tags}")
-    private String tags;
 
     private final static long CD = 30;
 
@@ -321,6 +321,7 @@ public class SetuListener {
         }
 
         private boolean tagCheck(String tag) {
+            String tags = COMMON_CONFIG.getSetuBlackTags();
             List<String> tagList = Arrays.asList(tags.split(","));
             int i = RandomUtils.nextInt(1, 100);
             LOGGER.info(i + " - " + tags);

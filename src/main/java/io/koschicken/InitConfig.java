@@ -91,6 +91,7 @@ public class InitConfig {
             COMMON_CONFIG.setSignCoin(5000);
             COMMON_CONFIG.setSetuCoin(500);
             COMMON_CONFIG.setR18Private(true);
+            COMMON_CONFIG.setSetuBlackTags("");
         }
         try {
             COMMON_CONFIG = loadConfig(file);
@@ -127,6 +128,8 @@ public class InitConfig {
         pro.setProperty("LOLICON_API_KEY", "");
         pro.addComment("B站Cookie");
         pro.setProperty("bilibiliCookie", "");
+        pro.addComment("setu黑名单");
+        pro.setProperty("setuBlackTags", "");
         pro.store(outputStream, "通用配置");
         outputStream.close();
     }
@@ -153,6 +156,7 @@ public class InitConfig {
         commonConfig.setR18Private(Boolean.parseBoolean(pro.getProperty("r18私聊")));
         commonConfig.setLoliconApiKey(pro.getProperty("LOLICON_API_KEY"));
         commonConfig.setBilibiliCookie(pro.getProperty("bilibiliCookie"));
+        commonConfig.setSetuBlackTags(pro.getProperty("setuBlackTags"));
         in.close();
         return commonConfig;
     }

@@ -36,4 +36,6 @@ public class CommonConfig {
     private String loliconApiKey;
     //B站cookie
     private String bilibiliCookie;
+    //setu黑名单
+    private String setuBlackTags;
 }
