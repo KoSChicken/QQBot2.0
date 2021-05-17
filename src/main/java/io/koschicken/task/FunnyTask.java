@@ -27,13 +27,23 @@ public class FunnyTask {
     private BotManager botManager;
 
     /**
+     * 做，做撚啊做
+     * 三点几嚟，饮茶先啦
+     */
+    @Scheduled(cron = "0 0 15 * * ?")
+    public void drinkTask3() {
+        LOGGER.info("drink time {}", dateFormat.format(new Date()));
+        sendPic("./resource/image/drink3.jpg");
+    }
+
+    /**
      * 做那么多，钱到哪里？
      * 差不多七点了，饮茶
      */
     @Scheduled(cron = "0 50 18 * * ?")
-    public void drinkTask() {
+    public void drinkTask7() {
         LOGGER.info("drink time {}", dateFormat.format(new Date()));
-        sendPic("./resource/image/drink.jpg");
+        sendPic("./resource/image/drink7.jpg");
     }
 
     private void sendPic(String picPath) {
