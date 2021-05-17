@@ -176,7 +176,7 @@ public class SetuListener {
     }
 
     @OnGroup
-    @Filter(value = "喵(.*?)")
+    @Filter(value = "喵(.*?)", matchType = MatchType.REGEX_MATCHES)
     public void meow(GroupMsg msg, MsgSender sender) throws IOException {
         ResponseHandler<String> myHandler = response -> EntityUtils.toString(response.getEntity(), Consts.UTF_8);
         String response = Request.Get(MEOW).addHeader(UA, UA_STRING).execute().handleResponse(myHandler);
@@ -322,11 +322,13 @@ public class SetuListener {
 
         private boolean tagCheck(String tag) {
             List<String> tagList = Arrays.asList(tags.split(","));
-            return RandomUtils.nextInt(1, 100) <= 10 && tagList.contains(tag);
+            int i = RandomUtils.nextInt(1, 100);
+            LOGGER.info(i + " - " + tags);
+            return i <= 10 && tagList.contains(tag);
         }
 
         private void sendPic(boolean fromLolicon, Pixiv p, String imageUrl, File compressedJPG) throws IOException {
-            Thumbnails.of(new URL(imageUrl)).scale(1).outputQuality(0.25).toFile(compressedJPG);
+            Thumbnails.of(new URL(imageUrl)).scale(1).outputQuality(1).toFile(compressedJPG);
             // 发送图片
             CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
             String image = catCodeUtil.getStringTemplate().image(compressedJPG.getAbsolutePath());
