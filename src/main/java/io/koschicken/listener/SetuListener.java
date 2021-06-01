@@ -112,7 +112,7 @@ public class SetuListener {
 
     @Limit(CD)
     @OnGroup
-    @Filter(value = "^来(.*?)[点丶份张張](.*?)的?(|r18)[色瑟涩][图圖]$", matchType = MatchType.REGEX_MATCHES)
+    @Filter(value = "^[来來](.*?)[点點丶份张張](.*?)的?(|r18)[色瑟涩][图圖]$", matchType = MatchType.REGEX_MATCHES)
     public void driver2(GroupMsg msg, MsgSender sender) {
         String qq = msg.getAccountInfo().getAccountCode();
         Account account = accountService.getById(qq);
@@ -132,7 +132,7 @@ public class SetuListener {
         String accountCode = msg.getAccountInfo().getAccountCode();
         String message = msg.getMsg();
         String regex = message.startsWith("叫") ? "^叫[车車](.*)(.*)?(|r18)$" :
-                "^来(.*?)[点點丶份张張](.*?)的?(|r18)[色瑟涩澀][图圖]$";
+                "^[来來](.*?)[点點丶份张張](.*?)的?(|r18)[色瑟涩澀][图圖]$";
         Pattern p = Pattern.compile(regex);
         Matcher m = p.matcher(message);
         int num = 1;
