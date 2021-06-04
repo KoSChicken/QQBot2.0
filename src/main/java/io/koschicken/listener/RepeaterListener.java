@@ -109,7 +109,9 @@ public class RepeaterListener {
      * @param nekoB nekoB
      */
     private boolean compareNeko(Neko nekoA, Neko nekoB) {
-        return Objects.equals(nekoA.getType(), nekoB.getType()) && Objects.equals(nekoA.get("id"), nekoB.get("id"));
+        return Objects.nonNull(nekoA) && Objects.nonNull(nekoB)
+                && Objects.equals(nekoA.getType(), nekoB.getType())
+                && Objects.equals(nekoA.get("id"), nekoB.get("id"));
     }
 
     @Data
