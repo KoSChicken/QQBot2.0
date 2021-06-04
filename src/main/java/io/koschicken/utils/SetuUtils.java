@@ -47,7 +47,8 @@ public class SetuUtils {
             return pixivList;
         } else {
             // 否则请求yuban
-            return fetchFromYuban1073(num, tag, r18);
+            // return fetchFromYuban1073(num, tag, r18);
+            return new ArrayList<>();
         }
     }
 

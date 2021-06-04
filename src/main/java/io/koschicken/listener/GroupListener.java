@@ -12,7 +12,6 @@ import org.apache.commons.lang3.RandomUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.io.File;
 
@@ -97,10 +96,6 @@ public class GroupListener {
         String groupCode = groupInfo.getGroupCode();
         String groupName = groupInfo.getGroupName();
 
-        String text = groupMsg.getText();
-        if (!StringUtils.hasText(text)) {
-            text = groupMsg.getMsgContent().getMsg();
-        }
-        LOGGER.info("{}({}) - {}({}): {}", groupName, groupCode, accountNickname, accountCode, text);
+        LOGGER.info("{}({}) - {}({}): {}", groupName, groupCode, accountNickname, accountCode, groupMsg.getMsg());
     }
 }

@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,7 +52,7 @@ public class SetuListener {
     private static final String ARTIST_PREFIX = "https://www.pixiv.net/users/";
     private static final String AVATAR_API = "http://thirdqq.qlogo.cn/g?b=qq&nk=";
     private static final String AWSL = "https://setu.awsl.ee/api/setu!";
-    private static final String MJX = "https://api.66mz8.com/api/rand.tbimg.php?format=pic";
+    private static final String MJX = "https://api.sumt.cn/api/rand.tbimg.php?format=jpg";
     private static final String MEOW = "http://aws.random.cat/meow";
     private static final String UA = "User-Agent";
     private static final String UA_STRING = "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3";
@@ -198,7 +199,7 @@ public class SetuListener {
 
     @Limit(CD)
     @OnGroup
-    @Filter(value = "#抽奖")
+    @Filter("#抽奖")
     public void luck(GroupMsg msg, MsgSender sender) throws IOException {
         HttpResponse httpResponse = Request.Get(AWSL).addHeader(UA, UA_STRING).execute().returnResponse();
         InputStream content = httpResponse.getEntity().getContent();
@@ -212,7 +213,7 @@ public class SetuListener {
 
     @Limit(CD * 4)
     @OnGroup
-    @Filter(value = "#mjx")
+    @Filter("#mjx")
     public void mjx(GroupMsg msg, MsgSender sender) throws IOException {
         InputStream content = Request.Get(MJX)
                 .setHeader(UA, UA_STRING)
@@ -277,6 +278,9 @@ public class SetuListener {
             try {
                 if (!tagCheck(tag)) {
                     List<Pixiv> setu = SetuUtils.getSetu(tag, num, r18);
+                    if (CollectionUtils.isEmpty(setu)) {
+                        return;
+                    }
                     Pixiv pixiv = setu.get(0);
                     String code = pixiv.getCode();
                     boolean fromLolicon = "0".equals(code);
@@ -325,7 +329,7 @@ public class SetuListener {
             List<String> tagList = Arrays.asList(tags.split(","));
             int i = RandomUtils.nextInt(1, 100);
             LOGGER.info(i + " - " + tags);
-            return i <= 10 && tagList.contains(tag);
+            return i <= 50 && tagList.contains(tag);
         }
 
         private void sendPic(boolean fromLolicon, Pixiv p, String imageUrl, File compressedJPG) throws IOException {
