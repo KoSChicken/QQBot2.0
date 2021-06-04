@@ -77,8 +77,7 @@ public class RepeaterListener {
                 } else {
                     stack.clear();
                 }
-                // if (stack.size() > RandomUtils.nextInt(1, 5)) {
-                if (stack.size() > 1) {
+                 if (stack.size() > RandomUtils.nextInt(1, 5)) {
                     CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
                     String image = catCodeUtil.getStringTemplate().image(Objects.requireNonNull(neko.get("url")));
                     sender.SENDER.sendGroupMsg(groupCode, image); // 复读
