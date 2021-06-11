@@ -297,6 +297,7 @@ public class SetuListener {
                 if (!tagCheck(tag)) {
                     List<Pixiv> setu = SetuUtils.getSetu(tag, num, r18);
                     if (CollectionUtils.isEmpty(setu)) {
+                        notFoundResponse("冇");
                         return;
                     }
                     Pixiv pixiv = setu.get(0);
@@ -322,23 +323,23 @@ public class SetuListener {
                         account.setCoin((long) (account.getCoin() - price * sendCount));
                         thisAccountService.updateById(account); // 按照实际发送的张数来扣除叫车者的币
                     } else {
-                        if (StringUtils.isEmpty(groupCode)) {
-                            sender.SENDER.sendPrivateMsg(privateQQ, "冇");
-                        } else {
-                            sender.SENDER.sendGroupMsg(groupCode, "冇");
-                        }
+                        notFoundResponse("冇");
                     }
                 } else {
                     String first = tag.trim().substring(0, 1);
-                    if (StringUtils.isEmpty(groupCode)) {
-                        sender.SENDER.sendPrivateMsg(privateQQ, first + "nmlgb");
-                    } else {
-                        sender.SENDER.sendGroupMsg(groupCode, first + "nmlgb");
-                    }
+                    notFoundResponse(first + "nmlgb");
                 }
             } catch (IOException e) {
                 e.printStackTrace();
                 sender.SENDER.sendGroupMsg(groupCode, "炸了");
+            }
+        }
+
+        private void notFoundResponse(String responseMsg) {
+            if (StringUtils.isEmpty(groupCode)) {
+                sender.SENDER.sendPrivateMsg(privateQQ, responseMsg);
+            } else {
+                sender.SENDER.sendGroupMsg(groupCode, responseMsg);
             }
         }
 
