@@ -87,7 +87,7 @@ public class SetuListener {
             }
         }
         File mjxFolder = new File(MJX_DIR);
-        if (!setuFolder.exists()) {
+        if (!mjxFolder.exists()) {
             try {
                 FileUtils.forceMkdir(mjxFolder);
             } catch (IOException e) {
@@ -95,7 +95,7 @@ public class SetuListener {
             }
         }
         File meowFolder = new File(MEOW_DIR);
-        if (!setuFolder.exists()) {
+        if (!meowFolder.exists()) {
             try {
                 FileUtils.forceMkdir(meowFolder);
             } catch (IOException e) {
