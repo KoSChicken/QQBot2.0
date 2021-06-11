@@ -47,7 +47,9 @@ import static io.koschicken.constants.Constants.COMMON_CONFIG;
 @Service
 public class SetuListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(SetuListener.class);
-    private static final String TEMP = "./temp/SETU/";
+    private static final String SETU_DIR = "./temp/SETU/";
+    private static final String MJX_DIR = "./temp/MJX/";
+    private static final String MEOW_DIR = "./temp/MEOW/";
     private static final String ARTWORK_PREFIX = "https://www.pixiv.net/artworks/";
     private static final String ARTIST_PREFIX = "https://www.pixiv.net/users/";
     private static final String AVATAR_API = "http://thirdqq.qlogo.cn/g?b=qq&nk=";
@@ -76,10 +78,26 @@ public class SetuListener {
     }
 
     static {
-        File setuFolder = new File(TEMP);
+        File setuFolder = new File(SETU_DIR);
         if (!setuFolder.exists()) {
             try {
                 FileUtils.forceMkdir(setuFolder);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        File mjxFolder = new File(MJX_DIR);
+        if (!setuFolder.exists()) {
+            try {
+                FileUtils.forceMkdir(mjxFolder);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        File meowFolder = new File(MEOW_DIR);
+        if (!setuFolder.exists()) {
+            try {
+                FileUtils.forceMkdir(meowFolder);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -185,7 +203,7 @@ public class SetuListener {
         String fileUrl = jsonObject.getString("file");
         String fileSuffix = fileUrl.substring(fileUrl.lastIndexOf("."));
         String uuid = UUID.randomUUID().toString();
-        File file = new File(TEMP + uuid + fileSuffix);
+        File file = new File(MEOW_DIR + uuid + fileSuffix);
         if (!Objects.equals(fileSuffix, ".gif")) {
             Thumbnails.of(new URL(fileUrl.replace("https", "http"))).scale(1)
                     .outputQuality(0.25).toFile(file);
@@ -204,7 +222,7 @@ public class SetuListener {
         HttpResponse httpResponse = Request.Get(AWSL).addHeader(UA, UA_STRING).execute().returnResponse();
         InputStream content = httpResponse.getEntity().getContent();
         String uuid = UUID.randomUUID().toString();
-        Path path = Paths.get(TEMP + uuid + ".jpg");
+        Path path = Paths.get(SETU_DIR + uuid + ".jpg");
         Files.copy(content, path);
         CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
         String image = catCodeUtil.getStringTemplate().image(path.toFile().getAbsolutePath());
@@ -219,7 +237,7 @@ public class SetuListener {
                 .setHeader(UA, UA_STRING)
                 .execute().returnResponse().getEntity().getContent();
         String uuid = UUID.randomUUID().toString();
-        Path path = Paths.get(TEMP + uuid + ".jpg");
+        Path path = Paths.get(MJX_DIR + uuid + ".jpg");
         Files.copy(content, path);
         CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
         String image = catCodeUtil.getStringTemplate().image(path.toFile().getAbsolutePath());
@@ -239,7 +257,7 @@ public class SetuListener {
         String api = AVATAR_API + qq + "&s=640";
         try {
             InputStream imageStream = Request.Get(api).execute().returnResponse().getEntity().getContent();
-            File pic = new File(TEMP + qq + System.currentTimeMillis() + ".jpg");
+            File pic = new File(SETU_DIR + qq + System.currentTimeMillis() + ".jpg");
             FileUtils.copyInputStreamToFile(imageStream, pic);
             CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
             String image = catCodeUtil.getStringTemplate().image(pic.getAbsolutePath());
@@ -288,7 +306,7 @@ public class SetuListener {
                         for (Pixiv p : setu) {
                             String filename = p.getFileName();
                             String imageUrl = p.getOriginal();
-                            File compressedJPG = new File(TEMP + filename.replace("png", "jpg"));
+                            File compressedJPG = new File(SETU_DIR + filename.replace("png", "jpg"));
                             if (!compressedJPG.exists() || System.currentTimeMillis() - compressedJPG.lastModified() > 60 * 60 * 1000) {
                                 // 图片1小时内没发过才会发
                                 sendPic(fromLolicon, p, imageUrl, compressedJPG);
