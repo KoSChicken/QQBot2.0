@@ -85,7 +85,6 @@ public class RepeaterListener {
                 }
             }
         }
-
     }
 
     private boolean repeatFlag(Msg msg) {

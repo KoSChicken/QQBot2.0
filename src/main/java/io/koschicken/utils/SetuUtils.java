@@ -14,12 +14,11 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static io.koschicken.constants.Constants.COMMON_CONFIG;
 
 public class SetuUtils {
     private static final String YUBAN1073API = "http://api.yuban10703.xyz:2333/setu_v4";
@@ -63,7 +62,7 @@ public class SetuUtils {
         }
         api += "&type=" + type;
         if (!StringUtils.isEmpty(tag)) {
-            api += "&tag=" + URLEncoder.encode(tag, "UTF-8");
+            api += "&tag=" + URLEncoder.encode(tag, StandardCharsets.UTF_8);
         }
         LOGGER.info("这次请求的yuban1073地址： {}", api);
         ResponseHandler<String> myHandler = response -> EntityUtils.toString(response.getEntity(), Consts.UTF_8);
@@ -88,10 +87,11 @@ public class SetuUtils {
 
     private static List<Pixiv> fetchFromLolicon(int num, String tag, Boolean r18) throws IOException {
         List<Pixiv> pics = new ArrayList<>();
-        String apikey = COMMON_CONFIG.getLoliconApiKey();
-        String loliconApi = LOLICONAPI + "?proxy=disable&apikey=" + apikey + "&r18=2&size1200=true&num=" + num;
+//        String apikey = COMMON_CONFIG.getLoliconApiKey();
+//        String loliconApi = LOLICONAPI + "?proxy=disable&apikey=" + apikey + "&num=" + num;
+        String loliconApi = LOLICONAPI + "?proxy=disable&num=" + num;
         if (!StringUtils.isEmpty(tag)) {
-            loliconApi += "&keyword=" + URLEncoder.encode(tag, "UTF-8");
+            loliconApi += "&keyword=" + URLEncoder.encode(tag, StandardCharsets.UTF_8);
         }
         if (r18 != null) {
             loliconApi += "&r18=" + (Boolean.TRUE.equals(r18) ? 1 : 2);

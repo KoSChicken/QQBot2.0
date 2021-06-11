@@ -343,9 +343,9 @@ public class SetuListener {
                     p.getAuthor() + "\n" +
                     ARTIST_PREFIX + p.getArtist() + "\n";
             // + "tags:" + Arrays.toString(p.getTags());
-            if (fromLolicon) {
-                message += "\n" + "今日剩余额度：" + p.getQuota();
-            }
+//            if (fromLolicon) {
+//                message += "\n" + "今日剩余额度：" + p.getQuota();
+//            }
             if (StringUtils.isEmpty(groupCode)) { // 不是群消息，则直接私聊
                 sender.SENDER.sendPrivateMsg(privateQQ, message);
             } else {
