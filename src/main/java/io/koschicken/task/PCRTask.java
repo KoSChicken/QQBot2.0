@@ -11,7 +11,6 @@ import love.forte.simbot.bot.BotManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -37,7 +36,7 @@ public class PCRTask {
      * PCR竞技场背刺提醒
      * 每天下午2点40
      */
-    @Scheduled(cron = "0 40 14 * * ?")
+    // @Scheduled(cron = "0 40 14 * * ?")
     public void JJCTask() {
         LOGGER.info("JJC time {}", dateFormat.format(new Date()));
         sendPic("./resource/image/stab.jpg");
@@ -47,7 +46,7 @@ public class PCRTask {
      * PCR商店刷新提醒
      * 每天的0, 6, 12, 18点提醒
      */
-    @Scheduled(cron = "0 0 0/6 * * ? ")
+    // @Scheduled(cron = "0 0 0/6 * * ? ")
     public void shop() {
         LOGGER.info("shop refresh time {}", dateFormat.format(new Date()));
         sendPic("./resource/image/" + COMMON_CONFIG.getMaiyaoPic());

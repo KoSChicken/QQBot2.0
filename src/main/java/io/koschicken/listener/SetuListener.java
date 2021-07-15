@@ -122,7 +122,7 @@ public class SetuListener {
             account = createScore(qq);
         }
         int i = RandomUtils.nextInt(1, 100);
-        if (i <= 10) {
+        if (i <= 10 && !Objects.equals(qq, COMMON_CONFIG.getMasterQQ())) {
             sender.SENDER.sendGroupMsg(msg, "累了，不想发车。");
         } else {
             sendPic(msg, sender, account);
@@ -297,7 +297,7 @@ public class SetuListener {
                 if (!tagCheck(tag)) {
                     List<Pixiv> setu = SetuUtils.getSetu(tag, num, r18);
                     if (CollectionUtils.isEmpty(setu)) {
-                        notFoundResponse("冇");
+                        notFoundResponse(null);
                         return;
                     }
                     Pixiv pixiv = setu.get(0);
@@ -323,7 +323,7 @@ public class SetuListener {
                         account.setCoin((long) (account.getCoin() - price * sendCount));
                         thisAccountService.updateById(account); // 按照实际发送的张数来扣除叫车者的币
                     } else {
-                        notFoundResponse("冇");
+                        notFoundResponse(null);
                     }
                 } else {
                     String first = tag.trim().substring(0, 1);
@@ -336,10 +336,22 @@ public class SetuListener {
         }
 
         private void notFoundResponse(String responseMsg) {
-            if (StringUtils.isEmpty(groupCode)) {
-                sender.SENDER.sendPrivateMsg(privateQQ, responseMsg);
+            String msg;
+            if (StringUtils.isEmpty(responseMsg)) {
+                CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
+                File image = new File("./resource/image/mao.jpg");
+                if (image.exists()) {
+                    msg = catCodeUtil.getStringTemplate().image(image.getAbsolutePath());
+                } else {
+                    msg = "冇";
+                }
             } else {
-                sender.SENDER.sendGroupMsg(groupCode, responseMsg);
+                msg = responseMsg;
+            }
+            if (StringUtils.isEmpty(groupCode)) {
+                sender.SENDER.sendPrivateMsg(privateQQ, msg);
+            } else {
+                sender.SENDER.sendGroupMsg(groupCode, msg);
             }
         }
 

@@ -7,7 +7,6 @@ import love.forte.simbot.bot.BotManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -30,7 +29,7 @@ public class FunnyTask {
      * 做，做撚啊做
      * 三点几嚟，饮茶先啦
      */
-    @Scheduled(cron = "0 0 15 * * ?")
+    // @Scheduled(cron = "0 0 15 * * ?")
     public void drinkTask3() {
         LOGGER.info("drink time {}", dateFormat.format(new Date()));
         sendPic("./resource/image/drink3.jpg");
@@ -40,7 +39,7 @@ public class FunnyTask {
      * 做那么多，钱到哪里？
      * 差不多七点了，饮茶
      */
-    @Scheduled(cron = "0 50 18 * * ?")
+    // @Scheduled(cron = "0 50 18 * * ?")
     public void drinkTask7() {
         LOGGER.info("drink time {}", dateFormat.format(new Date()));
         sendPic("./resource/image/drink7.jpg");
