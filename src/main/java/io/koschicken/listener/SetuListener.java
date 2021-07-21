@@ -3,7 +3,8 @@ package io.koschicken.listener;
 import catcode.CatCodeUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import io.koschicken.bean.Pixiv;
+import io.koschicken.bean.setu.LoliconResponse;
+import io.koschicken.bean.setu.Pixiv;
 import io.koschicken.db.bean.Account;
 import io.koschicken.db.service.AccountService;
 import io.koschicken.intercept.limit.Limit;
@@ -20,7 +21,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Consts;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.util.EntityUtils;
@@ -29,15 +29,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -48,17 +44,15 @@ import static io.koschicken.constants.Constants.COMMON_CONFIG;
 public class SetuListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(SetuListener.class);
     private static final String SETU_DIR = "./temp/SETU/";
-    private static final String MJX_DIR = "./temp/MJX/";
     private static final String MEOW_DIR = "./temp/MEOW/";
     private static final String ARTWORK_PREFIX = "https://www.pixiv.net/artworks/";
     private static final String ARTIST_PREFIX = "https://www.pixiv.net/users/";
     private static final String AVATAR_API = "http://thirdqq.qlogo.cn/g?b=qq&nk=";
-    private static final String AWSL = "https://setu.awsl.ee/api/setu!";
-    private static final String MJX = "https://api.sumt.cn/api/rand.tbimg.php?format=jpg";
     private static final String MEOW = "http://aws.random.cat/meow";
     private static final String UA = "User-Agent";
     private static final String UA_STRING = "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3";
     private static final HashMap<String, Integer> NUMBER;
+    private final static long CD = 5;
 
     static {
         NUMBER = new HashMap<>();
@@ -86,14 +80,6 @@ public class SetuListener {
                 e.printStackTrace();
             }
         }
-        File mjxFolder = new File(MJX_DIR);
-        if (!mjxFolder.exists()) {
-            try {
-                FileUtils.forceMkdir(mjxFolder);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
         File meowFolder = new File(MEOW_DIR);
         if (!meowFolder.exists()) {
             try {
@@ -106,11 +92,8 @@ public class SetuListener {
 
     @Autowired
     private AccountService accountService;
-
     @Value("${setu.price}")
     private double price;
-
-    private final static long CD = 30;
 
     @Limit(CD)
     @OnGroup
@@ -123,7 +106,7 @@ public class SetuListener {
         }
         int i = RandomUtils.nextInt(1, 100);
         if (i <= 10 && !Objects.equals(qq, COMMON_CONFIG.getMasterQQ())) {
-            sender.SENDER.sendGroupMsg(msg, "累了，不想发车。");
+            sender.SENDER.sendGroupMsg(msg, "累了，歇会");
         } else {
             sendPic(msg, sender, account);
         }
@@ -140,7 +123,7 @@ public class SetuListener {
         }
         int i = RandomUtils.nextInt(1, 100);
         if (i <= 10) {
-            sender.SENDER.sendGroupMsg(msg, "累了，不想发车。");
+            sender.SENDER.sendGroupMsg(msg, "累了，歇会");
         } else {
             sendPic(msg, sender, account);
         }
@@ -175,7 +158,6 @@ public class SetuListener {
             r18 = !StringUtils.isEmpty(m.group(3).trim());
         }
         if (account.getCoin() >= price * num) {
-            // 发图
             GroupMemberList groupMemberList = sender.GETTER.getGroupMemberList(msg);
             for (GroupMemberInfo member : groupMemberList) {
                 String remarkOrNickname = member.getAccountRemarkOrNickname();
@@ -212,35 +194,6 @@ public class SetuListener {
         }
         CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
         String image = catCodeUtil.getStringTemplate().image(file.getAbsolutePath());
-        sender.SENDER.sendGroupMsg(msg, image);
-    }
-
-    @Limit(CD)
-    @OnGroup
-    @Filter("#抽奖")
-    public void luck(GroupMsg msg, MsgSender sender) throws IOException {
-        HttpResponse httpResponse = Request.Get(AWSL).addHeader(UA, UA_STRING).execute().returnResponse();
-        InputStream content = httpResponse.getEntity().getContent();
-        String uuid = UUID.randomUUID().toString();
-        Path path = Paths.get(SETU_DIR + uuid + ".jpg");
-        Files.copy(content, path);
-        CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
-        String image = catCodeUtil.getStringTemplate().image(path.toFile().getAbsolutePath());
-        sender.SENDER.sendGroupMsg(msg, image);
-    }
-
-    @Limit(CD * 4)
-    @OnGroup
-    @Filter("#mjx")
-    public void mjx(GroupMsg msg, MsgSender sender) throws IOException {
-        InputStream content = Request.Get(MJX)
-                .setHeader(UA, UA_STRING)
-                .execute().returnResponse().getEntity().getContent();
-        String uuid = UUID.randomUUID().toString();
-        Path path = Paths.get(MJX_DIR + uuid + ".jpg");
-        Files.copy(content, path);
-        CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
-        String image = catCodeUtil.getStringTemplate().image(path.toFile().getAbsolutePath());
         sender.SENDER.sendGroupMsg(msg, image);
     }
 
@@ -292,46 +245,41 @@ public class SetuListener {
 
         @Override
         public void run() {
-            int sendCount = 0; // 记录实际发送的图片张数
-            try {
-                if (!tagCheck(tag)) {
-                    List<Pixiv> setu = SetuUtils.getSetu(tag, num, r18);
-                    if (CollectionUtils.isEmpty(setu)) {
-                        notFoundResponse(null);
-                        return;
-                    }
-                    Pixiv pixiv = setu.get(0);
-                    String code = pixiv.getCode();
-                    boolean fromLolicon = "0".equals(code);
-                    if ("200".equals(code) || fromLolicon || Objects.isNull(code)) {
-                        for (Pixiv p : setu) {
-                            String filename = p.getFileName();
-                            String imageUrl = p.getOriginal();
-                            File compressedJPG = new File(SETU_DIR + filename.replace("png", "jpg"));
-                            if (!compressedJPG.exists() || System.currentTimeMillis() - compressedJPG.lastModified() > 60 * 60 * 1000) {
-                                // 图片1小时内没发过才会发
-                                sendPic(fromLolicon, p, imageUrl, compressedJPG);
-                                sendCount++;
-                            } else {
-                                if (!p.isR18()) {
-                                    LOGGER.info("------- 图片名称：{}", filename);
-                                    sender.SENDER.sendGroupMsg(groupCode, "含有 " + tag + " 的车已经发完了");
-                                }
-                                return;
-                            }
-                        }
-                        account.setCoin((long) (account.getCoin() - price * sendCount));
-                        thisAccountService.updateById(account); // 按照实际发送的张数来扣除叫车者的币
-                    } else {
-                        notFoundResponse(null);
-                    }
-                } else {
-                    String first = tag.trim().substring(0, 1);
-                    notFoundResponse(first + "nmlgb");
+            if (!tagCheck(tag)) {
+                LoliconResponse loliconResponse;
+                try {
+                    loliconResponse = SetuUtils.getSetu(tag, num, r18);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    sender.SENDER.sendGroupMsg(groupCode, "炸了");
+                    return;
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
-                sender.SENDER.sendGroupMsg(groupCode, "炸了");
+                if (StringUtils.isEmpty(loliconResponse.getError())) {
+                    int sendCount = 0; // 记录实际发送的图片张数
+                    List<Pixiv> data = loliconResponse.getData();
+                    for (Pixiv p : data) {
+                        String pid = p.getPid().toString();
+                        File compressedJPG = new File(SETU_DIR + pid + ".jpg");
+                        if (!compressedJPG.exists() || System.currentTimeMillis() - compressedJPG.lastModified() > 60 * 60 * 1000) {
+                            // 图片1小时内没发过才会发
+                            sendPic(p, p.getUrls(), compressedJPG);
+                            sendCount++;
+                        } else {
+                            if (!p.isR18()) {
+                                LOGGER.info("------- 图片名称：{}", pid + "." + p.getExt());
+                                sender.SENDER.sendGroupMsg(groupCode, "含有 " + tag + " 的车已经发完了");
+                            }
+                            return;
+                        }
+                    }
+                    account.setCoin((long) (account.getCoin() - price * sendCount));
+                    thisAccountService.updateById(account); // 按照实际发送的张数来扣除叫车者的币
+                } else {
+                    sender.SENDER.sendGroupMsg(groupCode, loliconResponse.getError());
+                }
+            } else {
+                String first = tag.trim().substring(0, 1);
+                notFoundResponse(first + "nmlgb");
             }
         }
 
@@ -357,26 +305,37 @@ public class SetuListener {
 
         private boolean tagCheck(String tag) {
             String tags = COMMON_CONFIG.getSetuBlackTags();
+            if (tags == null) {
+                return false;
+            }
             List<String> tagList = Arrays.asList(tags.split(","));
             int i = RandomUtils.nextInt(1, 100);
             LOGGER.info(i + " - " + tags);
             return i <= 50 && tagList.contains(tag);
         }
 
-        private void sendPic(boolean fromLolicon, Pixiv p, String imageUrl, File compressedJPG) throws IOException {
-            Thumbnails.of(new URL(imageUrl)).scale(1).outputQuality(1).toFile(compressedJPG);
+        private void sendPic(Pixiv p, Map<String, String> urlMap, File compressedJPG) {
+            String originalUrl = urlMap.get("original");
+            try {
+                Thumbnails.of(new URL(originalUrl)).scale(1).outputQuality(1).toFile(compressedJPG);
+            } catch (IOException e) {
+                e.printStackTrace();
+                if (!p.isR18()) { // 非R18且叫车的是群消息
+                    sender.SENDER.sendGroupMsg(groupCode, "炸了");
+                } else {  // R18则发送私聊
+                    sender.SENDER.sendPrivateMsg(privateQQ, "炸了");
+                }
+                return;
+            }
             // 发送图片
             CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
             String image = catCodeUtil.getStringTemplate().image(compressedJPG.getAbsolutePath());
             String message = image + "\n" +
                     p.getTitle() + "\n" +
-                    ARTWORK_PREFIX + p.getArtwork() + "\n" +
+                    ARTWORK_PREFIX + p.getPid() + "\n" +
                     p.getAuthor() + "\n" +
-                    ARTIST_PREFIX + p.getArtist() + "\n";
+                    ARTIST_PREFIX + p.getUid() + "\n";
             // + "tags:" + Arrays.toString(p.getTags());
-//            if (fromLolicon) {
-//                message += "\n" + "今日剩余额度：" + p.getQuota();
-//            }
             if (StringUtils.isEmpty(groupCode)) { // 不是群消息，则直接私聊
                 sender.SENDER.sendPrivateMsg(privateQQ, message);
             } else {
