@@ -259,17 +259,24 @@ public class SetuListener {
                     List<Pixiv> data = loliconResponse.getData();
                     for (Pixiv p : data) {
                         String pid = p.getPid().toString();
-                        File compressedJPG = new File(SETU_DIR + pid + ".jpg");
-                        if (!compressedJPG.exists() || System.currentTimeMillis() - compressedJPG.lastModified() > 60 * 60 * 1000) {
-                            // 图片1小时内没发过才会发
-                            sendPic(p, p.getUrls(), compressedJPG);
-                            sendCount++;
-                        } else {
-                            if (!p.isR18()) {
-                                LOGGER.info("------- 图片名称：{}", pid + "." + p.getExt());
-                                sender.SENDER.sendGroupMsg(groupCode, "含有 " + tag + " 的车已经发完了");
+                        try {
+                            File originalFile = new File(SETU_DIR + pid + "." + p.getExt());
+                            FileUtils.copyURLToFile(new URL(p.getUrls().get("original")), originalFile);
+                            LOGGER.info("原图创建完成，pid={}, file={}", pid, originalFile.getName());
+                            File compressedJPG = new File(SETU_DIR + pid + "_comp.jpg");
+                            if (!originalFile.exists() || System.currentTimeMillis() - originalFile.lastModified() > 60 * 60 * 1000) {
+                                // 图片1小时内没发过才会发
+                                sendPic(p, originalFile, compressedJPG);
+                                sendCount++;
+                            } else {
+                                if (!p.isR18()) {
+                                    LOGGER.info("------- 图片名称：{}", pid + "." + p.getExt());
+                                    sender.SENDER.sendGroupMsg(groupCode, "含有 " + tag + " 的车已经发完了");
+                                }
+                                return;
                             }
-                            return;
+                        } catch (IOException e) {
+                            e.printStackTrace();
                         }
                     }
                     account.setCoin((long) (account.getCoin() - price * sendCount));
@@ -314,10 +321,9 @@ public class SetuListener {
             return i <= 50 && tagList.contains(tag);
         }
 
-        private void sendPic(Pixiv p, Map<String, String> urlMap, File compressedJPG) {
-            String originalUrl = urlMap.get("original");
+        private void sendPic(Pixiv p, File originalFile, File compressedJPG) {
             try {
-                Thumbnails.of(new URL(originalUrl)).scale(1).outputQuality(1).toFile(compressedJPG);
+                Thumbnails.of(originalFile).scale(1).outputQuality(1).toFile(compressedJPG);
             } catch (IOException e) {
                 e.printStackTrace();
                 if (!p.isR18()) { // 非R18且叫车的是群消息
@@ -345,6 +351,7 @@ public class SetuListener {
                     sender.SENDER.sendPrivateMsg(privateQQ, message);
                 }
             }
+            FileUtils.deleteQuietly(compressedJPG);
         }
     }
 }
