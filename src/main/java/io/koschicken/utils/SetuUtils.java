@@ -30,7 +30,7 @@ public class SetuUtils {
 
     public static LoliconResponse getSetu(String tag, int num, Boolean r18) throws IOException {
         LoliconResponse loliconResponse = fetchFromLolicon(num, tag, null, r18);
-        if (loliconResponse.getData().isEmpty()) {
+        if (loliconResponse.getData() == null) {
             return fetchFromLolicon(num, null, tag, r18);
         } else {
             return loliconResponse;
