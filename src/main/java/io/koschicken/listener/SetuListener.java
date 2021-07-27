@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,6 +45,7 @@ import static io.koschicken.constants.Constants.COMMON_CONFIG;
 public class SetuListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(SetuListener.class);
     private static final String SETU_DIR = "./temp/SETU/";
+    private static final String SETU_COMP_DIR = "./temp/SETU/comp/";
     private static final String MEOW_DIR = "./temp/MEOW/";
     private static final String ARTWORK_PREFIX = "https://www.pixiv.net/artworks/";
     private static final String ARTIST_PREFIX = "https://www.pixiv.net/users/";
@@ -52,7 +54,7 @@ public class SetuListener {
     private static final String UA = "User-Agent";
     private static final String UA_STRING = "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3";
     private static final HashMap<String, Integer> NUMBER;
-    private final static long CD = 5;
+    private final static long CD = 15;
 
     static {
         NUMBER = new HashMap<>();
@@ -76,6 +78,14 @@ public class SetuListener {
         if (!setuFolder.exists()) {
             try {
                 FileUtils.forceMkdir(setuFolder);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        File setuCompFolder = new File(SETU_COMP_DIR);
+        if (!setuCompFolder.exists()) {
+            try {
+                FileUtils.forceMkdir(setuCompFolder);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -257,14 +267,19 @@ public class SetuListener {
                 if (StringUtils.isEmpty(loliconResponse.getError())) {
                     int sendCount = 0; // 记录实际发送的图片张数
                     List<Pixiv> data = loliconResponse.getData();
+                    if (CollectionUtils.isEmpty(data)) {
+                        notFoundResponse(null);
+                    }
                     for (Pixiv p : data) {
                         String pid = p.getPid().toString();
                         try {
                             File originalFile = new File(SETU_DIR + pid + "." + p.getExt());
-                            FileUtils.copyURLToFile(new URL(p.getUrls().get("original")), originalFile);
+                            if (!originalFile.exists()) {
+                                FileUtils.copyURLToFile(new URL(p.getUrls().get("original")), originalFile);
+                            }
                             LOGGER.info("原图创建完成，pid={}, file={}", pid, originalFile.getName());
-                            File compressedJPG = new File(SETU_DIR + pid + "_comp.jpg");
-                            if (!originalFile.exists() || System.currentTimeMillis() - originalFile.lastModified() > 60 * 60 * 1000) {
+                            File compressedJPG = new File(SETU_COMP_DIR + pid + ".jpg");
+                            if (!compressedJPG.exists() || System.currentTimeMillis() - compressedJPG.lastModified() > 60 * 60 * 1000) {
                                 // 图片1小时内没发过才会发
                                 sendPic(p, originalFile, compressedJPG);
                                 sendCount++;
@@ -277,6 +292,7 @@ public class SetuListener {
                             }
                         } catch (IOException e) {
                             e.printStackTrace();
+                            sender.SENDER.sendGroupMsg(groupCode, "炸了");
                         }
                     }
                     account.setCoin((long) (account.getCoin() - price * sendCount));
@@ -351,7 +367,6 @@ public class SetuListener {
                     sender.SENDER.sendPrivateMsg(privateQQ, message);
                 }
             }
-            FileUtils.deleteQuietly(compressedJPG);
         }
     }
 }

@@ -29,13 +29,21 @@ public class SetuUtils {
     }
 
     public static LoliconResponse getSetu(String tag, int num, Boolean r18) throws IOException {
-        return fetchFromLolicon(num, tag, r18);
+        LoliconResponse loliconResponse = fetchFromLolicon(num, tag, null, r18);
+        if (loliconResponse.getData().isEmpty()) {
+            return fetchFromLolicon(num, null, tag, r18);
+        } else {
+            return loliconResponse;
+        }
     }
 
-    private static LoliconResponse fetchFromLolicon(int num, String tag, Boolean r18) throws IOException {
+    private static LoliconResponse fetchFromLolicon(int num, String tag, String keyword, Boolean r18) throws IOException {
         String loliconApi = LOLICON_API + "?size=original&size=regular&num=" + num;
         if (!StringUtils.isEmpty(tag)) {
             loliconApi += "&tag=" + URLEncoder.encode(tag, StandardCharsets.UTF_8);
+        }
+        if (!StringUtils.isEmpty(keyword)) {
+            loliconApi += "&keyword=" + URLEncoder.encode(keyword, StandardCharsets.UTF_8);
         }
         if (r18 != null) {
             loliconApi += "&r18=" + (Boolean.TRUE.equals(r18) ? 1 : 0);
@@ -47,8 +55,11 @@ public class SetuUtils {
         String error = jsonObject.getString("error");
         LoliconResponse loliconResponse = new LoliconResponse();
         loliconResponse.setError(error);
-        if (StringUtils.isEmpty(error)) {
-            JSONArray dataArray = jsonObject.getJSONArray("data");
+        JSONArray dataArray = jsonObject.getJSONArray("data");
+        if (!StringUtils.isEmpty(error)) {
+            return loliconResponse;
+        }
+        if (!dataArray.isEmpty()) {
             List<Pixiv> data = new ArrayList<>();
             for (int i = 0; i < dataArray.size(); i++) {
                 JSONObject pic = dataArray.getJSONObject(i);
@@ -75,7 +86,8 @@ public class SetuUtils {
         pixiv.setExt(data.getString("ext"));
         pixiv.setUploadDate(data.getLong("uploadDate"));
         JSONObject urls = data.getJSONObject("urls");
-        pixiv.setUrls(JSONObject.parseObject(urls.toJSONString(), new TypeReference<>() {}));
+        pixiv.setUrls(JSONObject.parseObject(urls.toJSONString(), new TypeReference<>() {
+        }));
         LOGGER.info("这次请求到的图片url： {}", urls.get("original"));
         return pixiv;
     }
