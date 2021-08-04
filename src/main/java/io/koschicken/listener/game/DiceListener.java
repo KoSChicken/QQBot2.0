@@ -5,18 +5,20 @@ import love.forte.simbot.annotation.Filter;
 import love.forte.simbot.annotation.OnGroup;
 import love.forte.simbot.api.message.events.GroupMsg;
 import love.forte.simbot.api.sender.MsgSender;
+import love.forte.simbot.filter.MatchType;
 import org.apache.commons.lang3.RandomUtils;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Component
+@Service
 public class DiceListener {
 
     @OnGroup
-    @Filter(value = "#豹？")
+    @Filter(value = "#豹？", matchType = MatchType.EQUALS)
     public void bao(GroupMsg msg, MsgSender sender) {
         List<String> diceResult = new ArrayList<>();
         boolean allSame = true; // 豹子flag
@@ -51,7 +53,7 @@ public class DiceListener {
     }
 
     @OnGroup
-    @Filter(value = "#roll(.*)[-dD](.*)")
+    @Filter(value = "#roll(.*)[-dD](.*)", matchType = MatchType.REGEX_MATCHES)
     public void roll(GroupMsg msg, MsgSender sender) {
         try {
             String regex = "#roll(.*)[-dD](.*)";
