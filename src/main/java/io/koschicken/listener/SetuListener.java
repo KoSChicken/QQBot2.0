@@ -267,36 +267,37 @@ public class SetuListener {
                 if (StringUtils.isEmpty(loliconResponse.getError())) {
                     int sendCount = 0; // 记录实际发送的图片张数
                     List<Pixiv> data = loliconResponse.getData();
-                    if (CollectionUtils.isEmpty(data)) {
-                        notFoundResponse(null);
-                    }
-                    for (Pixiv p : data) {
-                        String pid = p.getPid().toString();
-                        try {
-                            File originalFile = new File(SETU_DIR + pid + "." + p.getExt());
-                            if (!originalFile.exists()) {
-                                FileUtils.copyURLToFile(new URL(p.getUrls().get("original")), originalFile);
-                            }
-                            LOGGER.info("原图创建完成，pid={}, file={}", pid, originalFile.getName());
-                            File compressedJPG = new File(SETU_COMP_DIR + pid + ".jpg");
-                            if (!compressedJPG.exists() || System.currentTimeMillis() - compressedJPG.lastModified() > 60 * 60 * 1000) {
-                                // 图片1小时内没发过才会发
-                                sendPic(p, originalFile, compressedJPG);
-                                sendCount++;
-                            } else {
-                                if (!p.isR18()) {
-                                    LOGGER.info("------- 图片名称：{}", pid + "." + p.getExt());
-                                    sender.SENDER.sendGroupMsg(groupCode, "含有 " + tag + " 的车已经发完了");
+                    if (!CollectionUtils.isEmpty(data)) {
+                        for (Pixiv p : data) {
+                            String pid = p.getPid().toString();
+                            try {
+                                File originalFile = new File(SETU_DIR + pid + "." + p.getExt());
+                                if (!originalFile.exists()) {
+                                    FileUtils.copyURLToFile(new URL(p.getUrls().get("original")), originalFile);
                                 }
-                                return;
+                                LOGGER.info("原图创建完成，pid={}, file={}", pid, originalFile.getName());
+                                File compressedJPG = new File(SETU_COMP_DIR + pid + ".jpg");
+                                if (!compressedJPG.exists() || System.currentTimeMillis() - compressedJPG.lastModified() > 60 * 60 * 1000) {
+                                    // 图片1小时内没发过才会发
+                                    sendPic(p, originalFile, compressedJPG);
+                                    sendCount++;
+                                } else {
+                                    if (!p.isR18()) {
+                                        LOGGER.info("------- 图片名称：{}", pid + "." + p.getExt());
+                                        sender.SENDER.sendGroupMsg(groupCode, "含有 " + tag + " 的车已经发完了");
+                                    }
+                                    return;
+                                }
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                sender.SENDER.sendGroupMsg(groupCode, "炸了");
                             }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                            sender.SENDER.sendGroupMsg(groupCode, "炸了");
                         }
+                        account.setCoin((long) (account.getCoin() - price * sendCount));
+                        thisAccountService.updateById(account); // 按照实际发送的张数来扣除叫车者的币
+                    } else {
+                        notFoundResponse("");
                     }
-                    account.setCoin((long) (account.getCoin() - price * sendCount));
-                    thisAccountService.updateById(account); // 按照实际发送的张数来扣除叫车者的币
                 } else {
                     sender.SENDER.sendGroupMsg(groupCode, loliconResponse.getError());
                 }
