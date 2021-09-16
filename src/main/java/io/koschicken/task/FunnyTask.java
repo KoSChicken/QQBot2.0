@@ -2,10 +2,9 @@ package io.koschicken.task;
 
 import catcode.CatCodeUtil;
 import io.koschicken.bean.GroupPower;
+import lombok.extern.slf4j.Slf4j;
 import love.forte.simbot.api.sender.BotSender;
 import love.forte.simbot.bot.BotManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -16,9 +15,9 @@ import java.util.Set;
 
 import static io.koschicken.intercept.BotIntercept.GROUP_CONFIG_MAP;
 
+@Slf4j
 @Component
 public class FunnyTask {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PCRTask.class);
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 
@@ -31,7 +30,7 @@ public class FunnyTask {
      */
     // @Scheduled(cron = "0 0 15 * * ?")
     public void drinkTask3() {
-        LOGGER.info("drink time {}", dateFormat.format(new Date()));
+        log.info("drink time {}", dateFormat.format(new Date()));
         sendPic("./resource/image/drink3.jpg");
     }
 
@@ -41,7 +40,7 @@ public class FunnyTask {
      */
     // @Scheduled(cron = "0 50 18 * * ?")
     public void drinkTask7() {
-        LOGGER.info("drink time {}", dateFormat.format(new Date()));
+        log.info("drink time {}", dateFormat.format(new Date()));
         sendPic("./resource/image/drink7.jpg");
     }
 
@@ -59,7 +58,7 @@ public class FunnyTask {
                 }
             }
         } else {
-            LOGGER.error("图片{}不存在", picPath);
+            log.error("图片{}不存在", picPath);
         }
     }
 }

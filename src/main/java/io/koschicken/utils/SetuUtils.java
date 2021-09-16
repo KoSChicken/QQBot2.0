@@ -6,12 +6,11 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import io.koschicken.bean.setu.LoliconResponse;
 import io.koschicken.bean.setu.Pixiv;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.Consts;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
@@ -21,9 +20,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@Slf4j
 public class SetuUtils {
     private static final String LOLICON_API = "https://api.lolicon.app/setu/v2";
-    private static final Logger LOGGER = LoggerFactory.getLogger(SetuUtils.class);
 
     private SetuUtils() {
     }
@@ -39,16 +38,16 @@ public class SetuUtils {
 
     private static LoliconResponse fetchFromLolicon(int num, String tag, String keyword, Boolean r18) throws IOException {
         String loliconApi = LOLICON_API + "?size=original&size=regular&num=" + num;
-        if (!StringUtils.isEmpty(tag)) {
+        if (StringUtils.hasText(tag)) {
             loliconApi += "&tag=" + URLEncoder.encode(tag, StandardCharsets.UTF_8);
         }
-        if (!StringUtils.isEmpty(keyword)) {
+        if (StringUtils.hasText(keyword)) {
             loliconApi += "&keyword=" + URLEncoder.encode(keyword, StandardCharsets.UTF_8);
         }
         if (r18 != null) {
             loliconApi += "&r18=" + (Boolean.TRUE.equals(r18) ? 1 : 0);
         }
-        LOGGER.info("这次请求的Lolicon地址： {}", loliconApi);
+        log.info("这次请求的Lolicon地址： {}", loliconApi);
         ResponseHandler<String> myHandler = response -> EntityUtils.toString(response.getEntity(), Consts.UTF_8);
         String response = Request.Get(loliconApi).execute().handleResponse(myHandler);
         JSONObject jsonObject = JSON.parseObject(response);
@@ -56,7 +55,7 @@ public class SetuUtils {
         LoliconResponse loliconResponse = new LoliconResponse();
         loliconResponse.setError(error);
         JSONArray dataArray = jsonObject.getJSONArray("data");
-        if (!StringUtils.isEmpty(error)) {
+        if (StringUtils.hasText(error)) {
             return loliconResponse;
         }
         if (!dataArray.isEmpty()) {
@@ -88,7 +87,7 @@ public class SetuUtils {
         JSONObject urls = data.getJSONObject("urls");
         pixiv.setUrls(JSONObject.parseObject(urls.toJSONString(), new TypeReference<>() {
         }));
-        LOGGER.info("这次请求到的图片url： {}", urls.get("original"));
+        log.info("这次请求到的图片url： {}", urls.get("original"));
         return pixiv;
     }
 }

@@ -9,6 +9,7 @@ import io.koschicken.db.bean.Account;
 import io.koschicken.db.service.AccountService;
 import io.koschicken.intercept.limit.Limit;
 import io.koschicken.utils.SetuUtils;
+import lombok.extern.slf4j.Slf4j;
 import love.forte.simbot.annotation.Filter;
 import love.forte.simbot.annotation.OnGroup;
 import love.forte.simbot.api.message.events.GroupMsg;
@@ -24,8 +25,6 @@ import org.apache.http.Consts;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -41,9 +40,9 @@ import java.util.regex.Pattern;
 
 import static io.koschicken.constants.Constants.COMMON_CONFIG;
 
+@Slf4j
 @Service
 public class SetuListener {
-    private static final Logger LOGGER = LoggerFactory.getLogger(SetuListener.class);
     private static final String SETU_DIR = "./temp/SETU/";
     private static final String SETU_COMP_DIR = "./temp/SETU/comp/";
     private static final String MEOW_DIR = "./temp/MEOW/";
@@ -163,7 +162,7 @@ public class SetuListener {
             try {
                 num = NUMBER.get(number) == null ? Integer.parseInt(number) : NUMBER.get(number);
             } catch (NumberFormatException ignore) {
-                LOGGER.info("number set to 1");
+                log.info("number set to 1");
             }
             r18 = !StringUtils.isEmpty(m.group(3).trim());
         }
@@ -172,7 +171,7 @@ public class SetuListener {
             for (GroupMemberInfo member : groupMemberList) {
                 String remarkOrNickname = member.getAccountRemarkOrNickname();
                 if (Objects.equals(tag, remarkOrNickname)) {
-                    LOGGER.info("群名片：{}\ttag: {}", remarkOrNickname, tag);
+                    log.info("群名片：{}\ttag: {}", remarkOrNickname, tag);
                     groupMember(msg, sender, member.getAccountCode());
                     return;
                 }
@@ -275,7 +274,7 @@ public class SetuListener {
                                 if (!originalFile.exists()) {
                                     FileUtils.copyURLToFile(new URL(p.getUrls().get("original")), originalFile);
                                 }
-                                LOGGER.info("原图创建完成，pid={}, file={}", pid, originalFile.getName());
+                                log.info("原图创建完成，pid={}, file={}", pid, originalFile.getName());
                                 File compressedJPG = new File(SETU_COMP_DIR + pid + ".jpg");
                                 if (!compressedJPG.exists() || System.currentTimeMillis() - compressedJPG.lastModified() > 60 * 60 * 1000) {
                                     // 图片1小时内没发过才会发
@@ -283,7 +282,7 @@ public class SetuListener {
                                     sendCount++;
                                 } else {
                                     if (!p.isR18()) {
-                                        LOGGER.info("------- 图片名称：{}", pid + "." + p.getExt());
+                                        log.info("------- 图片名称：{}", pid + "." + p.getExt());
                                         sender.SENDER.sendGroupMsg(groupCode, "含有 " + tag + " 的车已经发完了");
                                     }
                                     return;
@@ -334,7 +333,7 @@ public class SetuListener {
             }
             List<String> tagList = Arrays.asList(tags.split(","));
             int i = RandomUtils.nextInt(1, 100);
-            LOGGER.info(i + " - " + tags);
+            log.info(i + " - " + tags);
             return i <= 50 && tagList.contains(tag);
         }
 

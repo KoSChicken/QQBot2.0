@@ -1,15 +1,13 @@
 package io.koschicken.db;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.sql.*;
 
+@Slf4j
 @Component
 public class InitDatabase {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(InitDatabase.class);
 
     public void initDB() {
         Connection conn = null;
@@ -21,11 +19,11 @@ public class InitDatabase {
             preparedStatement = conn.prepareStatement("select * from sqlite_master limit 1");
             ResultSet resultSet = preparedStatement.executeQuery();
             exist = resultSet.next();
-            LOGGER.info(String.valueOf(exist));
+            log.info(String.valueOf(exist));
         } catch (SQLException ignore) {
-            LOGGER.info("初次运行，即将新建数据库。");
+            log.info("初次运行，即将新建数据库。");
         } catch (ClassNotFoundException classNotFoundException) {
-            LOGGER.error("数据库驱动不存在");
+            log.error("数据库驱动不存在");
         } finally {
             try {
                 createDatabase(exist, conn);

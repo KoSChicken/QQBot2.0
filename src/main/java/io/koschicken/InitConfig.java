@@ -7,10 +7,9 @@ import io.koschicken.bean.GroupPower;
 import io.koschicken.bean.HorseEvent;
 import io.koschicken.constants.GameConstants;
 import io.koschicken.utils.SafeProperties;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -18,14 +17,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import static io.koschicken.constants.Constants.CONFIG_DIR;
 import static io.koschicken.constants.Constants.COMMON_CONFIG;
+import static io.koschicken.constants.Constants.CONFIG_DIR;
 import static io.koschicken.constants.PCRConstants.*;
 import static io.koschicken.intercept.BotIntercept.GROUP_CONFIG_MAP;
 
+@Slf4j
 public class InitConfig {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(InitConfig.class);
 
     private InitConfig() {
     }
@@ -177,7 +175,7 @@ public class InitConfig {
                 List<String> bedHorseEvent = JSON.parseObject(jsonObject1.get("bedHorseEvent").toString(), List.class);
                 List<String> goodHorseEvent = JSON.parseObject(jsonObject1.get("goodHorseEvent").toString(), List.class);
                 GameConstants.HORSE_EVENT.getGoodHorseEvent().addAll(goodHorseEvent);
-                GameConstants.HORSE_EVENT.getBedHorseEvent().addAll(bedHorseEvent);
+                GameConstants.HORSE_EVENT.getBadHorseEvent().addAll(bedHorseEvent);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -246,7 +244,7 @@ public class InitConfig {
         } catch (IOException e) {
             e.printStackTrace();
         } catch (NullPointerException e) {
-            LOGGER.error("扭蛋配置文件错误，是否删除了一项？");
+            log.error("扭蛋配置文件错误，是否删除了一项？");
         }
     }
 }

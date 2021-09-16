@@ -2,14 +2,13 @@ package io.koschicken.task;
 
 import catcode.CatCodeUtil;
 import io.koschicken.bean.GroupPower;
+import lombok.extern.slf4j.Slf4j;
 import love.forte.simbot.annotation.Filter;
 import love.forte.simbot.annotation.OnGroup;
 import love.forte.simbot.api.message.events.GroupMsg;
 import love.forte.simbot.api.sender.BotSender;
 import love.forte.simbot.api.sender.Sender;
 import love.forte.simbot.bot.BotManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -22,10 +21,9 @@ import java.util.Set;
 import static io.koschicken.constants.Constants.COMMON_CONFIG;
 import static io.koschicken.intercept.BotIntercept.GROUP_CONFIG_MAP;
 
+@Slf4j
 @Component
 public class PCRTask {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(PCRTask.class);
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 
@@ -38,7 +36,7 @@ public class PCRTask {
      */
     // @Scheduled(cron = "0 40 14 * * ?")
     public void JJCTask() {
-        LOGGER.info("JJC time {}", dateFormat.format(new Date()));
+        log.info("JJC time {}", dateFormat.format(new Date()));
         sendPic("./resource/image/stab.jpg");
     }
 
@@ -48,7 +46,7 @@ public class PCRTask {
      */
     // @Scheduled(cron = "0 0 0/6 * * ? ")
     public void shop() {
-        LOGGER.info("shop refresh time {}", dateFormat.format(new Date()));
+        log.info("shop refresh time {}", dateFormat.format(new Date()));
         sendPic("./resource/image/" + COMMON_CONFIG.getMaiyaoPic());
     }
 
@@ -75,7 +73,7 @@ public class PCRTask {
                 }
             }
         } else {
-            LOGGER.error("图片{}不存在", picPath);
+            log.error("图片{}不存在", picPath);
         }
     }
 }

@@ -1,6 +1,7 @@
 package io.koschicken.listener;
 
 import catcode.CatCodeUtil;
+import lombok.extern.slf4j.Slf4j;
 import love.forte.common.ioc.annotation.Beans;
 import love.forte.simbot.annotation.Filter;
 import love.forte.simbot.annotation.OnGroup;
@@ -9,8 +10,6 @@ import love.forte.simbot.api.message.containers.GroupInfo;
 import love.forte.simbot.api.message.events.GroupMsg;
 import love.forte.simbot.api.sender.Sender;
 import org.apache.commons.lang3.RandomUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -30,10 +29,9 @@ import java.io.File;
  *
  * @author ForteScarlet
  */
+@Slf4j
 @Service
 public class GroupListener {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(GroupListener.class);
 
     @OnGroup
     @Filter("xsp")
@@ -96,6 +94,6 @@ public class GroupListener {
         String groupCode = groupInfo.getGroupCode();
         String groupName = groupInfo.getGroupName();
 
-        LOGGER.info("{}({}) - {}({}): {}", groupName, groupCode, accountNickname, accountCode, groupMsg.getMsg());
+        log.info("{}({}) - {}({}): {}", groupName, groupCode, accountNickname, accountCode, groupMsg.getMsg());
     }
 }

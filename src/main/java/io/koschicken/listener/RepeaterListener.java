@@ -114,6 +114,7 @@ public class RepeaterListener {
     }
 
     @Data
+    static
     class Msg {
         private String content;
         private Neko neko;
