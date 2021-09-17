@@ -170,7 +170,7 @@ public class SetuListener {
             GroupMemberList groupMemberList = sender.GETTER.getGroupMemberList(msg);
             for (GroupMemberInfo member : groupMemberList) {
                 String remarkOrNickname = member.getAccountRemarkOrNickname();
-                if (Objects.equals(tag, remarkOrNickname)) {
+                if (Objects.nonNull(remarkOrNickname) && Objects.equals(tag, remarkOrNickname.trim())) {
                     log.info("群名片：{}\ttag: {}", remarkOrNickname, tag);
                     groupMember(msg, sender, member.getAccountCode());
                     return;
