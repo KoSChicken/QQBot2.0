@@ -1,6 +1,7 @@
 package io.koschicken.listener;
 
 import catcode.CatCodeUtil;
+import catcode.Neko;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import io.koschicken.bean.setu.LoliconResponse;
@@ -8,6 +9,7 @@ import io.koschicken.bean.setu.Pixiv;
 import io.koschicken.db.bean.Account;
 import io.koschicken.db.service.AccountService;
 import io.koschicken.intercept.limit.Limit;
+import io.koschicken.utils.FingerPrint;
 import io.koschicken.utils.SetuUtils;
 import lombok.extern.slf4j.Slf4j;
 import love.forte.simbot.annotation.Filter;
@@ -30,6 +32,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,12 +40,14 @@ import java.net.URL;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static io.koschicken.constants.Constants.COMMON_CONFIG;
 
 @Slf4j
 @Service
 public class SetuListener {
+    private static final String TEMP_DIR = "./temp/";
     private static final String SETU_DIR = "./temp/SETU/";
     private static final String SETU_COMP_DIR = "./temp/SETU/comp/";
     private static final String MEOW_DIR = "./temp/MEOW/";
@@ -206,6 +211,36 @@ public class SetuListener {
         sender.SENDER.sendGroupMsg(msg, image);
     }
 
+    @OnGroup
+    public void callPic(GroupMsg groupMsg, MsgSender sender) {
+        File call = new File("./resource/image/call.jpg");
+        List<Neko> cats = groupMsg.getMsgContent().getCats();
+        List<Neko> imageNekoList = cats.stream().filter(cat -> "image".equals(cat.getType())).collect(Collectors.toList());
+        imageNekoList.forEach(neko -> {
+            String url = neko.get("url");
+            try {
+                if (Objects.nonNull(url)) {
+                    File file = new File(TEMP_DIR + UUID.randomUUID());
+                    FileUtils.copyURLToFile(new URL(url), file);
+                    FingerPrint fp1 = new FingerPrint(ImageIO.read(file));
+                    FingerPrint fp2 = new FingerPrint(ImageIO.read(call));
+                    float compare = fp1.compare(fp2);
+                    log.info("call pic compare, similar rate: {}", compare);
+                    if (compare >= 0.95) {
+                        String groupCode = groupMsg.getGroupInfo().getGroupCode();
+                        String accountCode = groupMsg.getAccountInfo().getAccountCode();
+                        SendSetu sendSetu = new SendSetu(groupCode, accountCode, sender, "",
+                                1, false, null, accountService);
+                        sendSetu.start();
+                    }
+                    FileUtils.delete(file);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
     private Account createScore(String accountCode) {
         Account account = new Account();
         account.setSignFlag(false);
@@ -292,8 +327,10 @@ public class SetuListener {
                                 sender.SENDER.sendGroupMsg(groupCode, "炸了");
                             }
                         }
-                        account.setCoin((long) (account.getCoin() - price * sendCount));
-                        thisAccountService.updateById(account); // 按照实际发送的张数来扣除叫车者的币
+                        if (Objects.nonNull(account)) {
+                            account.setCoin((long) (account.getCoin() - price * sendCount));
+                            thisAccountService.updateById(account); // 按照实际发送的张数来扣除叫车者的币
+                        }
                     } else {
                         notFoundResponse("");
                     }
