@@ -120,7 +120,12 @@ public class SetuRunner implements Callable<LoliconResponse> {
         while (m.find()) {
             if (msg.startsWith("叫")) {
                 tag = m.group(1).trim();
-                r18 = !StringUtils.isEmpty(m.group(2).trim());
+                if ("r18".equals(tag) || "R18".equals(tag)) {
+                    tag = "";
+                    r18 = true;
+                } else {
+                    r18 = !StringUtils.isEmpty(m.group(2).trim());
+                }
             } else {
                 number = m.group(1).trim();
                 tag = m.group(2).trim();
