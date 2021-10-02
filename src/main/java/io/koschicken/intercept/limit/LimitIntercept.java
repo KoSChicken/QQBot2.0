@@ -78,7 +78,7 @@ public class LimitIntercept implements ListenerInterceptor {
             final String key = keyStringBuilder.toString();
             final ListenLimit listenLimit = limitMap.computeIfAbsent(key, h -> new ListenLimit(time));
             if (!listenLimit.expired() && limit.sendMsg()) {
-                sendMessage(isGroup, isCode, groupCode, code, limit.message());
+                sendMessage(isGroup, isCode, groupCode, code, limit.message(), listenLimit.remaining());
                 return InterceptionType.BLOCK;
             } else {
                 return InterceptionType.ALLOW;
@@ -86,14 +86,14 @@ public class LimitIntercept implements ListenerInterceptor {
         }
     }
 
-    private void sendMessage(boolean isGroup, boolean isCode, String groupCode, String code, String message) {
+    private void sendMessage(boolean isGroup, boolean isCode, String groupCode, String code, String message, int remaining) {
         BotSender sender = botManager.getDefaultBot().getSender();
         if (isGroup) {
-            sender.SENDER.sendGroupMsg(groupCode, message);
+            sender.SENDER.sendGroupMsg(groupCode, message + "剩余" + remaining + "秒");
             return;
         }
         if (isCode) {
-            sender.SENDER.sendPrivateMsg(code, message);
+            sender.SENDER.sendPrivateMsg(code, message + "剩余" + remaining + "秒");
         }
     }
 }

@@ -28,4 +28,13 @@ public class ListenLimit {
         }
         return false;
     }
+
+    public int remaining() {
+        final long now = System.currentTimeMillis();
+        if (!expired()) {
+            return (int) (invalidTime - now) / 1000;
+        } else {
+            return 0;
+        }
+    }
 }

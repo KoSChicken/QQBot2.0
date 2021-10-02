@@ -65,7 +65,6 @@ public class SetuListener {
         }
     }
 
-    @Limit(CD)
     @OnGroup
     public void callPic(GroupMsg groupMsg, MsgSender sender) {
         File call = new File("./resource/image/call.jpg");

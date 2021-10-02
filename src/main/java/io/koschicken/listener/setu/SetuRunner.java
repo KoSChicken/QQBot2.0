@@ -29,6 +29,7 @@ import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static io.koschicken.constants.Constants.COMMON_CONFIG;
 
@@ -125,7 +126,7 @@ public class SetuRunner implements Callable<LoliconResponse> {
                 tag = m.group(2).trim();
                 r18 = !StringUtils.isEmpty(m.group(3).trim());
                 try {
-                    num = NUMBER.get(number) == null ? Integer.parseInt(number) : NUMBER.get(number);
+                    num = NUMBER.get(number) == null ? Math.min(10, Integer.parseInt(number)) : NUMBER.get(number);
                 } catch (NumberFormatException ignore) {
                     log.info("number set to 1");
                 }
@@ -147,12 +148,14 @@ public class SetuRunner implements Callable<LoliconResponse> {
 
     private void send(LoliconResponse loliconResponse) {
         List<MessageContent> msgList = listMsg(loliconResponse);
-        if (msgList.size() > 1) {
+        if (msgList.size() > 1 || checkR18(loliconResponse)) {
             List<List<MessageContent>> partition = Lists.partition(msgList, 10);
             for (List<MessageContent> list : partition) {
                 MiraiMessageContentBuilder messageContentBuilder = factory.getMessageContentBuilder();
                 for (MessageContent messageContent : list) {
-                    messageContentBuilder.forwardMessage(forwardBuilder -> forwardBuilder.add(sender.GETTER.getBotInfo(), messageContent));
+//                    messageContentBuilder.forwardMessage(forwardBuilder -> forwardBuilder.add(sender.GETTER.getBotInfo(), messageContent));
+                    messageContentBuilder.forwardMessage(forwardBuilder ->
+                            forwardBuilder.add(RandomUtils.nextBoolean() ? msg.getAccountInfo() : randomGroupMember(), messageContent));
                 }
                 final MiraiMessageContent messageContent = messageContentBuilder.build();
                 sender.SENDER.sendGroupMsg(msg, messageContent);
@@ -160,6 +163,17 @@ public class SetuRunner implements Callable<LoliconResponse> {
         } else {
             sender.SENDER.sendGroupMsg(msg, msgList.get(0));
         }
+    }
+
+    private boolean checkR18(LoliconResponse loliconResponse) {
+        return loliconResponse.getData().stream().anyMatch(Pixiv::isR18);
+    }
+
+    private GroupMemberInfo randomGroupMember() {
+        List<GroupMemberInfo> groupMemberList = sender.GETTER.getGroupMemberList(msg.getGroupInfo().getGroupCode())
+                .stream().collect(Collectors.toList());
+        Collections.shuffle(groupMemberList);
+        return groupMemberList.get(0);
     }
 
     private List<MessageContent> listMsg(LoliconResponse loliconResponse) {
@@ -178,12 +192,14 @@ public class SetuRunner implements Callable<LoliconResponse> {
                     String pid = p.getPid().toString();
                     try {
                         File originalFile = new File(SETU_DIR + pid + "." + p.getExt());
+                        File compressedJPG = new File(SETU_COMP_DIR + pid + ".jpg");
                         if (!originalFile.exists()) {
                             FileUtils.copyURLToFile(new URL(p.getUrls().get("original")), originalFile);
+                            log.info("原图创建完成，pid={}, file={}", pid, originalFile.getName());
+                            Thumbnails.of(originalFile).scale(1).outputQuality(1).toFile(compressedJPG);
+                        } else {
+                            log.info("图片已经存在，pid={}, file={}", pid, originalFile.getName());
                         }
-                        log.info("原图创建完成，pid={}, file={}", pid, originalFile.getName());
-                        File compressedJPG = new File(SETU_COMP_DIR + pid + ".jpg");
-                        Thumbnails.of(originalFile).scale(1).outputQuality(1).toFile(compressedJPG);
                         String message = "\n" +
                                 p.getTitle() + "\n" +
                                 ARTWORK_PREFIX + p.getPid() + "\n" +
