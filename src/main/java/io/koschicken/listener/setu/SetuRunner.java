@@ -171,7 +171,9 @@ public class SetuRunner implements Callable<LoliconResponse> {
     }
 
     private boolean checkR18(LoliconResponse loliconResponse) {
-        return loliconResponse.getData().stream().anyMatch(Pixiv::isR18);
+        return Objects.nonNull(loliconResponse)
+                && Objects.nonNull(loliconResponse.getData())
+                && loliconResponse.getData().stream().anyMatch(Pixiv::isR18);
     }
 
     private GroupMemberInfo randomGroupMember() {
