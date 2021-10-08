@@ -195,30 +195,9 @@ public class SetuRunner implements Callable<LoliconResponse> {
         }
         if (StringUtils.isEmpty(error)) {
             if (CollectionUtils.isNotEmpty(data)) {
-                for (Pixiv p : data) {
-                    String pid = p.getPid().toString();
-                    try {
-                        File originalFile = new File(SETU_DIR + pid + "." + p.getExt());
-                        File compressedJPG = new File(SETU_COMP_DIR + pid + ".jpg");
-                        if (!originalFile.exists()) {
-                            FileUtils.copyURLToFile(new URL(p.getUrls().get("original")), originalFile);
-                            log.info("原图创建完成，pid={}, file={}", pid, originalFile.getName());
-                            Thumbnails.of(originalFile).scale(1).outputQuality(1).toFile(compressedJPG);
-                        } else {
-                            log.info("图片已经存在，pid={}, file={}", pid, originalFile.getName());
-                        }
-                        String message = "\n" +
-                                p.getTitle() + "\n" +
-                                ARTWORK_PREFIX + p.getPid() + "\n" +
-                                p.getAuthor() + "\n" +
-                                ARTIST_PREFIX + p.getUid() + "\n";
-                        // + "tags:" + Arrays.toString(p.getTags());
-                        MessageContent messageContent = messageContentBuilder.image(compressedJPG.getAbsolutePath()).text(message).build();
-                        msgList.add(messageContent);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
+                data.parallelStream().forEach(p -> {
+                    msgList.add(buildMessage(messageContentBuilder, p));
+                });
             } else {
                 File image = new File("./resource/image/mao.jpg");
                 if (image.exists()) {
@@ -231,6 +210,29 @@ public class SetuRunner implements Callable<LoliconResponse> {
             msgList.add(messageContentBuilder.text(error).build());
         }
         return msgList;
+    }
+
+    private MessageContent buildMessage(MiraiMessageContentBuilder messageContentBuilder, Pixiv p) {
+        String pid = p.getPid().toString();
+        try {
+            File originalFile = new File(SETU_DIR + pid + "." + p.getExt());
+            if (!originalFile.exists()) {
+                FileUtils.copyURLToFile(new URL(p.getUrls().get("original")), originalFile);
+            }
+            log.info("原图创建完成，pid={}, file={}", pid, originalFile.getName());
+            File compressedJPG = new File(SETU_COMP_DIR + pid + ".jpg");
+            Thumbnails.of(originalFile).scale(1).outputQuality(1).toFile(compressedJPG);
+            String message = "\n" +
+                    p.getTitle() + "\n" +
+                    ARTWORK_PREFIX + p.getPid() + "\n" +
+                    p.getAuthor() + "\n" +
+                    ARTIST_PREFIX + p.getUid() + "\n";
+            // + "tags:" + Arrays.toString(p.getTags());
+            return messageContentBuilder.image(compressedJPG.getAbsolutePath()).text(message).build();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private boolean groupMember(GroupMsg msg, MsgSender sender, String tag) {
