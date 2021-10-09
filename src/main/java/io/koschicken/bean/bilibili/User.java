@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import io.koschicken.utils.HttpUtils;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -13,6 +14,7 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Slf4j
 @Data
 public class User {
     private static final String USER_TEMP_FOLDER = "./temp/bilibili/user/";
@@ -34,9 +36,13 @@ public class User {
     private File face;
     private String sign;
 
-    public User(String mid) throws IOException {
+    public User(String mid) {
         this.mid = mid;
-        fresh();
+        try {
+            fresh();
+        } catch (IOException ignore) {
+            log.error("初始化B站用户失败");
+        }
     }
 
     /**

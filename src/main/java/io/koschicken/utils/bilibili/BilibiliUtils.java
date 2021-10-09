@@ -37,7 +37,7 @@ public class BilibiliUtils {
                     JSONObject jsonObject = JSON.parseObject(jsonString);
                     Set<String> keySet = jsonObject.keySet();
                     for (String key : keySet) {
-                        String byGroup = jsonObject.getJSONObject(key).getJSONArray("following").toJSONString();
+                        String byGroup = jsonObject.getJSONArray(key).toJSONString();
                         List<Following> value = JSON.parseArray(byGroup, Following.class);
                         GROUP_BILIBILI_MAP.put(key, value);
                     }

@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import io.koschicken.utils.HttpUtils;
 import io.koschicken.utils.bilibili.BVAVUtils;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -13,6 +14,7 @@ import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Slf4j
 @Data
 public class Video {
     private static final String VIDEO_TEMP_FOLDER = "./temp/bilibili/video/";
@@ -41,7 +43,11 @@ public class Video {
             av = videoCode;
             bv = BVAVUtils.v2b(videoCode);
         }
-        fresh();
+        try {
+            fresh();
+        } catch (IOException ignore) {
+            log.error("初始化B站视频失败");
+        }
     }
 
     /**

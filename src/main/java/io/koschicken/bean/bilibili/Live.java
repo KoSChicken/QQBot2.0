@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import io.koschicken.utils.HttpUtils;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -14,6 +15,7 @@ import java.util.regex.Pattern;
 
 import static org.springframework.util.ResourceUtils.isUrl;
 
+@Slf4j
 @Data
 public class Live {
 
@@ -44,7 +46,11 @@ public class Live {
 
     public Live(String mid) throws IOException {
         this.mid = mid;
-        fresh();
+        try {
+            fresh();
+        } catch (IOException ignore) {
+            log.error("初始化B站直播失败");
+        }
     }
 
     /**
