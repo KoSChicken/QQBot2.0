@@ -2,6 +2,7 @@ package io.koschicken.intercept;
 
 import com.alibaba.fastjson.JSON;
 import io.koschicken.bean.GroupPower;
+import io.koschicken.bean.bilibili.Following;
 import io.koschicken.constants.Constants;
 import love.forte.simbot.api.message.events.GroupMsg;
 import love.forte.simbot.api.message.events.MsgGet;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,6 +26,7 @@ import static io.koschicken.constants.Constants.CONFIG_DIR;
 public class BotIntercept implements MsgInterceptor {
 
     public static Map<String, GroupPower> GROUP_CONFIG_MAP = new ConcurrentHashMap<>(10);
+    public static Map<String, List<Following>> GROUP_BILIBILI_MAP = new ConcurrentHashMap<>(10);
 
     @NotNull
     @Override
