@@ -142,7 +142,7 @@ public class SetuRunner implements Callable<LoliconResponse> {
 
     private boolean tagCheck(String tag) {
         String tags = COMMON_CONFIG.getSetuBlackTags();
-        if (tags == null) {
+        if (StringUtils.isEmpty(tags)) {
             return false;
         }
         List<String> tagList = Arrays.asList(tags.split(","));
@@ -195,9 +195,7 @@ public class SetuRunner implements Callable<LoliconResponse> {
         }
         if (StringUtils.isEmpty(error)) {
             if (CollectionUtils.isNotEmpty(data)) {
-                data.parallelStream().forEach(p -> {
-                    msgList.add(buildMessage(messageContentBuilder, p));
-                });
+                data.parallelStream().forEach(p -> msgList.add(buildMessage(messageContentBuilder, p)));
             } else {
                 File image = new File("./resource/image/mao.jpg");
                 if (image.exists()) {
