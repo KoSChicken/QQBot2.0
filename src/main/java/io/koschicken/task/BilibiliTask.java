@@ -37,9 +37,8 @@ public class BilibiliTask {
     @Scheduled(cron = "0 */1 * * * ?")
     public void liveNotice() {
         BilibiliUtils.bilibiliJSON();
-        fetchLive();
+        Set<Following> allFollowing = fetchLive();
         LOGGER.info("当前监听的直播间：\n{}", GROUP_BILIBILI_MAP.isEmpty() ? "无" : printMap());
-        Set<Following> allFollowing = allFollowing();
         for (Following following : allFollowing) {
             if (following.isNotification()) {
                 String uid = following.getUid();
@@ -87,7 +86,7 @@ public class BilibiliTask {
         return group;
     }
 
-    private void fetchLive() {
+    private Set<Following> fetchLive() {
         Set<Following> followingSet = allFollowing();
         LIVE_MAP.clear();
         followingSet.forEach(following -> {
@@ -101,6 +100,7 @@ public class BilibiliTask {
                 e.printStackTrace();
             }
         });
+        return followingSet;
     }
 
     private String printMap() {
