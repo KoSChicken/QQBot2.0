@@ -71,7 +71,10 @@ public class ExternalProperties {
         String qq = scanner.next();
         log.info("密码:  ");
         String pw = scanner.next();
+        log.info("masterQQ（用于控制Bot开关，不填写则bot无法开启）:  ");
+        String masterQQ = scanner.next();
         properties.setProperty("simbot.core.bots", qq + ":" + pw);
+        properties.setProperty("masterqq", masterQQ);
         properties.store(op, "### bot config");
     }
 }

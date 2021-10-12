@@ -115,7 +115,7 @@ public class InitConfig {
         pro.setProperty("彩票默认关闭", String.valueOf(Boolean.FALSE));
         pro.setProperty("色图默认关闭", String.valueOf(Boolean.FALSE));
         pro.addComment("主人qq相当于在所有群里对这个机器人有管理员权限");
-        pro.setProperty("主人qq", "");
+        pro.setProperty("主人qq", getMasterQQ());
         pro.addComment("签到增加币数目，设置为负数则有可能会越签越少");
         pro.setProperty("签到一次金币", "5000");
         pro.addComment("发一次色图所要花费的币数量，设置为负数可能会越花越多");
@@ -130,6 +130,17 @@ public class InitConfig {
         pro.setProperty("setuBlackTags", "");
         pro.store(outputStream, "通用配置");
         outputStream.close();
+    }
+
+    private static String getMasterQQ() {
+        SafeProperties pro = new SafeProperties();
+        try (InputStreamReader in = new InputStreamReader(new FileInputStream("application.properties"), StandardCharsets.UTF_8)) {
+            pro.load(in);
+            return pro.get("masterqq").toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 
     public static CommonConfig loadConfig(File file) throws IOException {
@@ -172,7 +183,7 @@ public class InitConfig {
                 }
             } else {
                 JSONObject jsonObject1 = JSON.parseObject(FileUtils.readFileToString(file, StandardCharsets.UTF_8));
-                List<String> bedHorseEvent = JSON.parseObject(jsonObject1.get("bedHorseEvent").toString(), List.class);
+                List<String> bedHorseEvent = JSON.parseObject(jsonObject1.get("badHorseEvent").toString(), List.class);
                 List<String> goodHorseEvent = JSON.parseObject(jsonObject1.get("goodHorseEvent").toString(), List.class);
                 GameConstants.HORSE_EVENT.getGoodHorseEvent().addAll(goodHorseEvent);
                 GameConstants.HORSE_EVENT.getBadHorseEvent().addAll(bedHorseEvent);

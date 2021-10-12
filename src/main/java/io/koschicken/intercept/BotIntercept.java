@@ -37,7 +37,7 @@ public class BotIntercept implements MsgInterceptor {
             String msg = ((GroupMsg) msgGet).getMsg();
             GroupPower groupPower = GROUP_CONFIG_MAP.get(groupCode);
             if (Objects.isNull(groupPower)) {
-                initGroupPower(groupCode);
+                groupPower = initGroupPower(groupCode);
             }
             //总体开关
             if (!groupPower.isGlobalSwitch()) {
@@ -70,7 +70,7 @@ public class BotIntercept implements MsgInterceptor {
         return InterceptionType.ALLOW;
     }
 
-    private void initGroupPower(String groupCode) {
+    private GroupPower initGroupPower(String groupCode) {
         GroupPower groupPower = new GroupPower();
         groupPower.setGlobalSwitch(Constants.COMMON_CONFIG.isGlobalSwitch());
         groupPower.setMaiyaoSwitch(Constants.COMMON_CONFIG.isMaiyaoSwitch());
@@ -80,6 +80,7 @@ public class BotIntercept implements MsgInterceptor {
         groupPower.setHorseSwitch(Constants.COMMON_CONFIG.isSetuSwitch());
         GROUP_CONFIG_MAP.put(groupCode, groupPower);
         setJson(GROUP_CONFIG_MAP);
+        return groupPower;
     }
 
     private boolean isChouKa(String msg) {
@@ -102,7 +103,7 @@ public class BotIntercept implements MsgInterceptor {
     }
 
     private boolean isOpen(String msg) {
-        return "#启用Bot".equals(msg);
+        return "/on".equals(msg);
     }
 
     private synchronized void setJson(Map<String, GroupPower> map) {
