@@ -18,4 +18,6 @@
 使用方法：
 
 直接启动jar包即可，初次启动会提醒输入bot的账号、密码和bot管理员的QQ号。
-目前启动时会创建一个sqlite文件，实际上没有什么用，主要是为了支撑曾经这个bot的一些积分制小游戏，目前暂时不打算重新增加这些小游戏，详情可以看[QQBot1.0](https://github.com/KoSChicken/QQBot)。
+
+
+目前启动时会创建一个sqlite文件，实际上没有什么用，主要是为了支撑曾经这个bot的一些积分制小游戏，目前暂时不打算重新增加这些小游戏，详情可以看[QQBot1.0](https://github.com/KoSChicken/QQBot1.0)。
