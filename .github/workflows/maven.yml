@@ -1,0 +1,63 @@
+# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
+
+name: Java CI with Maven
+
+on:
+  push:
+    branches: [ dev ]
+  pull_request:
+    branches: [ dev ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up JDK 11
+      uses: actions/setup-java@v2
+      with:
+        java-version: '11'
+        distribution: 'adopt'
+        cache: maven
+    - name: Build with Maven
+      run: mvn -B package --file pom.xml
+    
+    - name: Release Drafter
+      # You may pin to the exact commit or the version.
+      # uses: release-drafter/release-drafter@fe52e97d262833ae07d05efaf1a239df3f1b5cd4
+      uses: KoSChicken/QQBot2.0@lateset
+      # with:
+        # If your workflow requires multiple release-drafter configs it be helpful to override the config-name.
+        # The config should still be located inside `.github` as that's where we are looking for config files.
+
+        # config-name: # optional, default is release-drafter.yml
+        # The name that will be used in the GitHub release that's created or updated.
+        # This will override any `name-template` specified in your `release-drafter.yml` if defined.
+
+        # name: # optional
+        # The tag name to be associated with the GitHub release that's created or updated.
+        # This will override any `tag-template` specified in your `release-drafter.yml` if defined.
+
+        # tag: # optional
+        # The version to be associated with the GitHub release that's created or updated.
+        # This will override any version calculated by the release-drafter.
+
+        # version: # optional
+        # A boolean indicating whether the release being created or updated should be immediately published.
+
+        # publish: # optional, default is 
+        # A boolean indicating whether the release being created or updated is a prerelease.
+
+        # prerelease: # optional, default is 
+        # The object that the release should be created to point to.
+
+        # commitish: # optional, default is 
+        # A boolean indicating whether the releaser mode is disabled.
+
+        # disable-releaser: # optional, default is 
+        # A boolean indicating whether the autolabeler mode is disabled.
+
+        # disable-autolabeler: # optional, default is 
