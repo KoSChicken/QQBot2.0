@@ -28,7 +28,7 @@ jobs:
     - name: Release Drafter
       # You may pin to the exact commit or the version.
       # uses: release-drafter/release-drafter@fe52e97d262833ae07d05efaf1a239df3f1b5cd4
-      uses: KoSChicken/QQBot2.0@lateset
+      uses: KoSChicken/QQBot2.0@latest
       # with:
         # If your workflow requires multiple release-drafter configs it be helpful to override the config-name.
         # The config should still be located inside `.github` as that's where we are looking for config files.
