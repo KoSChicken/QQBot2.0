@@ -8,6 +8,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import java.util.Scanner;
 
+import static io.koschicken.constants.Constants.CONFIG_DIR;
+
 /**
  * 外部配置初始化
  * 包括bot的账号密码和基本的功能开关
@@ -35,6 +37,7 @@ public class ExternalProperties {
             properties.load(in);
             String bot = properties.getProperty("simbot.core.bots");
             if (bot == null) {
+                deleteConfigs();
                 try (OutputStreamWriter op = new OutputStreamWriter(new FileOutputStream(externalPropFile), StandardCharsets.UTF_8)) {
                     scanAccount(properties, op);
                 }
@@ -42,6 +45,14 @@ public class ExternalProperties {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void deleteConfigs() {
+        FileUtils.deleteQuietly(new File(CONFIG_DIR + "/bilibili.json"));
+        FileUtils.deleteQuietly(new File(CONFIG_DIR + "/config.json"));
+        FileUtils.deleteQuietly(new File(CONFIG_DIR + "/扭蛋.json"));
+        FileUtils.deleteQuietly(new File(CONFIG_DIR + "/事件.json"));
+        FileUtils.deleteQuietly(new File(CONFIG_DIR + "/通用配置.txt"));
     }
 
     private void initDefaultProperties(Properties properties, File file) {

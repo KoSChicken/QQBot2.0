@@ -2,7 +2,6 @@ package io.koschicken.listener.setu;
 
 import catcode.CatCodeUtil;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
-import com.google.common.collect.Lists;
 import io.koschicken.bean.setu.LoliconResponse;
 import io.koschicken.bean.setu.Pixiv;
 import lombok.Data;
@@ -154,17 +153,14 @@ public class SetuRunner implements Callable<LoliconResponse> {
     private void send(LoliconResponse loliconResponse) {
         List<MessageContent> msgList = listMsg(loliconResponse);
         if (msgList.size() > 1 || checkR18(loliconResponse)) {
-            List<List<MessageContent>> partition = Lists.partition(msgList, 10);
-            for (List<MessageContent> list : partition) {
-                MiraiMessageContentBuilder messageContentBuilder = factory.getMessageContentBuilder();
-                for (MessageContent messageContent : list) {
-//                    messageContentBuilder.forwardMessage(forwardBuilder -> forwardBuilder.add(sender.GETTER.getBotInfo(), messageContent));
-                    messageContentBuilder.forwardMessage(forwardBuilder ->
-                            forwardBuilder.add(RandomUtils.nextBoolean() ? msg.getAccountInfo() : randomGroupMember(), messageContent));
-                }
-                final MiraiMessageContent messageContent = messageContentBuilder.build();
-                sender.SENDER.sendGroupMsg(msg, messageContent);
-            }
+            MiraiMessageContentBuilder messageContentBuilder = factory.getMessageContentBuilder();
+                messageContentBuilder.forwardMessage(forwardBuilder -> {
+                    for (MessageContent messageContent : msgList) {
+                        forwardBuilder.add(RandomUtils.nextBoolean() ? msg.getAccountInfo() : randomGroupMember(), messageContent);
+                    }
+                });
+            final MiraiMessageContent messageContent = messageContentBuilder.build();
+            sender.SENDER.sendGroupMsg(msg, messageContent);
         } else {
             sender.SENDER.sendGroupMsg(msg, msgList.get(0));
         }
@@ -195,7 +191,14 @@ public class SetuRunner implements Callable<LoliconResponse> {
         }
         if (StringUtils.isEmpty(error)) {
             if (CollectionUtils.isNotEmpty(data)) {
-                data.parallelStream().forEach(p -> msgList.add(buildMessage(messageContentBuilder, p)));
+                data.parallelStream().forEach(p -> msgList.add(buildMessage(p)));
+                List<MessageContent> errors = msgList.stream().filter(m -> m.getMsg().toLowerCase().contains("exception")).collect(Collectors.toList());
+                msgList.removeAll(errors);
+                if (CollectionUtils.isEmpty(msgList)) {
+                    msgList.add(messageContentBuilder.text("炸了").build());
+                }
+                log.info("{} error(s), {} content(s)", errors.size(), msgList.size());
+                return msgList;
             } else {
                 File image = new File("./resource/image/mao.jpg");
                 if (image.exists()) {
@@ -210,9 +213,13 @@ public class SetuRunner implements Callable<LoliconResponse> {
         return msgList;
     }
 
-    private MessageContent buildMessage(MiraiMessageContentBuilder messageContentBuilder, Pixiv p) {
+    private MessageContent buildMessage(Pixiv p) {
+        MiraiMessageContentBuilder messageContentBuilder = factory.getMessageContentBuilder();
         String pid = p.getPid().toString();
         try {
+            if (RandomUtils.nextBoolean()) {
+                throw new IOException();
+            }
             File originalFile = new File(SETU_DIR + pid + "." + p.getExt());
             if (!originalFile.exists()) {
                 FileUtils.copyURLToFile(new URL(p.getUrls().get("original")), originalFile);
@@ -229,8 +236,8 @@ public class SetuRunner implements Callable<LoliconResponse> {
             return messageContentBuilder.image(compressedJPG.getAbsolutePath()).text(message).build();
         } catch (IOException e) {
             e.printStackTrace();
+            return messageContentBuilder.text(e.getClass().getName()).build();
         }
-        return null;
     }
 
     private boolean groupMember(GroupMsg msg, MsgSender sender, String tag) {
