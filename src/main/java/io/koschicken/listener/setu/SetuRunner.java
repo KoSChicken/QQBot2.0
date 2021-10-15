@@ -217,9 +217,6 @@ public class SetuRunner implements Callable<LoliconResponse> {
         MiraiMessageContentBuilder messageContentBuilder = factory.getMessageContentBuilder();
         String pid = p.getPid().toString();
         try {
-            if (RandomUtils.nextBoolean()) {
-                throw new IOException();
-            }
             File originalFile = new File(SETU_DIR + pid + "." + p.getExt());
             if (!originalFile.exists()) {
                 FileUtils.copyURLToFile(new URL(p.getUrls().get("original")), originalFile);
