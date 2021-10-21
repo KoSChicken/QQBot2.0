@@ -124,6 +124,8 @@ public class InitConfig {
         pro.setProperty("r18私聊", "true");
         pro.addComment("LoliconAPIKey");
         pro.setProperty("LOLICON_API_KEY", "");
+        pro.addComment("SauceNaoAPIKey");
+        pro.setProperty("SAUCENAO_API_KEY", "");
         pro.addComment("B站Cookie");
         pro.setProperty("bilibiliCookie", "");
         pro.addComment("setu黑名单");
@@ -164,6 +166,7 @@ public class InitConfig {
         commonConfig.setSetuCoin(Integer.parseInt(pro.getProperty("发一次色图花费")));
         commonConfig.setR18Private(Boolean.parseBoolean(pro.getProperty("r18私聊")));
         commonConfig.setLoliconApiKey(pro.getProperty("LOLICON_API_KEY"));
+        commonConfig.setSauceNaoApiKey(pro.getProperty("SAUCENAO_API_KEY"));
         commonConfig.setBilibiliCookie(pro.getProperty("bilibiliCookie"));
         commonConfig.setSetuBlackTags(pro.getProperty("setuBlackTags"));
         in.close();

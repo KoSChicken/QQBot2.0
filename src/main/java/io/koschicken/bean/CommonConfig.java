@@ -34,6 +34,8 @@ public class CommonConfig {
     private boolean r18Private;
     //LoliconApiKey
     private String loliconApiKey;
+    //SauceNaoApiKey
+    private String sauceNaoApiKey;
     //B站cookie
     private String bilibiliCookie;
     //setu黑名单
