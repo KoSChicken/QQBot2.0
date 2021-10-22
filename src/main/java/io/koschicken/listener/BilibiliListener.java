@@ -1,8 +1,11 @@
 package io.koschicken.listener;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Objects;
 import io.koschicken.bean.bilibili.Following;
+import io.koschicken.utils.HttpUtils;
 import io.koschicken.utils.bilibili.BilibiliUtils;
 import lombok.extern.slf4j.Slf4j;
 import love.forte.simbot.annotation.Filter;
@@ -26,6 +29,9 @@ import static io.koschicken.intercept.BotIntercept.GROUP_BILIBILI_MAP;
 @Slf4j
 @Service
 public class BilibiliListener {
+
+//    @Autowired(required = false)
+//    private MiraiMessageContentBuilderFactory factory;
 
     @OnGroup
     @Filter(value = "/fo", matchType = MatchType.STARTS_WITH)
@@ -66,6 +72,44 @@ public class BilibiliListener {
             sender.sendGroupMsg(groupMsg, uid + "不存在");
         }
     }
+
+    @OnGroup
+    @Filter(value = "/cf", matchType = MatchType.STARTS_WITH)
+    public void cdq(GroupMsg groupMsg, Sender sender) throws IOException {
+        String url = "https://tools.asoulfan.com/api/cfj/?name=";
+        String q = groupMsg.getMsg().substring(3).trim();
+        String s = HttpUtils.get(url + q);
+        log.info(s);
+        JSONObject jsonObject = JSON.parseObject(s);
+        Integer code = jsonObject.getInteger("code");
+        if (code == 0) {
+            StringBuilder stringBuilder = new StringBuilder();
+            JSONArray data = jsonObject.getJSONObject("data").getJSONArray("list");
+            if (data.size() > 0) {
+                stringBuilder.append(q).append("关注的管人有：\n");
+                for (int i = 0; i < data.size(); i++) {
+                    JSONObject jo = data.getJSONObject(i);
+                    stringBuilder.append(jo.getString("uname")).append("\n");
+                }
+                stringBuilder.append("共").append(jsonObject.getJSONObject("data").getInteger("total")).append("个");
+//                MiraiMessageContentBuilder messageContentBuilder = factory.getMessageContentBuilder();
+//                messageContentBuilder.forwardMessage(forwardBuilder -> forwardBuilder.add(groupMsg.getAccountInfo(), buildMessageContent(stringBuilder.toString())));
+//                MessageContent messageContent = messageContentBuilder.build();
+//                sender.sendGroupMsg(groupMsg, messageContent);
+                sender.sendGroupMsg(groupMsg, stringBuilder.toString());
+            } else {
+                stringBuilder.append(q).append("没有关注管人");
+                sender.sendGroupMsg(groupMsg, stringBuilder.toString());
+            }
+        } else {
+            sender.sendGroupMsg(groupMsg, "查询失败");
+        }
+    }
+
+//    private MessageContent buildMessageContent(String message) {
+//        MiraiMessageContentBuilder messageContentBuilder = factory.getMessageContentBuilder();
+//        return messageContentBuilder.text(message).build();
+//    }
 
     private boolean isFollowed(String groupCode, String uid) {
         List<Following> followingList = GROUP_BILIBILI_MAP.get(groupCode);
