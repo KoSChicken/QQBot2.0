@@ -48,8 +48,8 @@ public class Live {
         this.mid = mid;
         try {
             fresh();
-        } catch (IOException ignore) {
-            log.error("初始化B站直播失败");
+        } catch (IOException e) {
+            log.error("初始化B站直播失败，{}", e.getMessage());
         }
     }
 
