@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import io.koschicken.bean.bilibili.BiliUser;
 import io.koschicken.bean.bilibili.Following;
+import io.koschicken.bean.bilibili.space.Space;
 import io.koschicken.utils.HttpUtils;
 import io.koschicken.utils.bilibili.BilibiliUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -38,11 +39,6 @@ public class BilibiliListener {
 
     @Autowired
     private MessageContentBuilderFactory factory;
-
-//    @Autowired
-//    public void setFactory(MiraiMessageContentBuilderFactory factory) {
-//        this.factory = factory;
-//    }
 
     @OnGroup
     @Filter(value = "/fo", matchType = MatchType.STARTS_WITH)
@@ -88,10 +84,11 @@ public class BilibiliListener {
 
     @OnGroup
     @Filter(value = "/lsfo", matchType = MatchType.EQUALS)
-    public void followingList(GroupMsg groupMsg, Sender sender) {
+    public void followingList(GroupMsg groupMsg, Sender sender) throws IOException {
         BilibiliUtils.bilibiliJSON();
         String groupCode = groupMsg.getGroupInfo().getGroupCode();
         List<Following> followings = GROUP_BILIBILI_MAP.get(groupCode);
+        dealName(followings);
         if (CollectionUtils.isEmpty(followings)) {
             sender.sendGroupMsg(groupMsg, "本群没有关注任何直播间");
         }
@@ -107,6 +104,15 @@ public class BilibiliListener {
         });
         MessageContent messageContent = messageContentBuilder.build();
         sender.sendGroupMsg(groupMsg, messageContent);
+    }
+
+    private void dealName(List<Following> followings) throws IOException {
+        for (Following following : followings) {
+            Space space = Space.getSpace(following.getUid());
+            if (Objects.nonNull(space)) {
+                following.setName(space.getName() + "(" + space.getMid() + ")");
+            }
+        }
     }
 
     @OnGroup
