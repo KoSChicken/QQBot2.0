@@ -88,7 +88,7 @@ public class BilibiliListener {
         BilibiliUtils.bilibiliJSON();
         String groupCode = groupMsg.getGroupInfo().getGroupCode();
         List<Following> followings = GROUP_BILIBILI_MAP.get(groupCode);
-        dealName(followings);
+        dealName(followings, groupCode);
         if (CollectionUtils.isEmpty(followings)) {
             sender.sendGroupMsg(groupMsg, "本群没有关注任何直播间");
         }
@@ -106,7 +106,7 @@ public class BilibiliListener {
         sender.sendGroupMsg(groupMsg, messageContent);
     }
 
-    private void dealName(List<Following> followings) throws IOException {
+    private void dealName(List<Following> followings, String groupCode) throws IOException {
         int callAPICount = 0;
         for (Following following : followings) {
             // 只有在没有存昵称或者上次昵称获取时间超过3天才会获取昵称
@@ -124,7 +124,15 @@ public class BilibiliListener {
                 callAPICount++;
             }
         }
-        log.info("使用API获取了{}个B站数据", callAPICount);
+        if (callAPICount > 0) {
+            GROUP_BILIBILI_MAP.remove(groupCode);
+            GROUP_BILIBILI_MAP.put(groupCode, followings);
+            String jsonString = JSON.toJSONString(GROUP_BILIBILI_MAP);
+            File jsonFile = new File(CONFIG_DIR + "/bilibili.json");
+            FileUtils.deleteQuietly(jsonFile);
+            FileUtils.writeStringToFile(jsonFile, jsonString, StandardCharsets.UTF_8);
+            log.info("使用API获取了{}个B站数据", callAPICount);
+        }
     }
 
     @OnGroup
