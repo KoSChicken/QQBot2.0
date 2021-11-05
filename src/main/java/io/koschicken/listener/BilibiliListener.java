@@ -107,6 +107,7 @@ public class BilibiliListener {
     }
 
     private void dealName(List<Following> followings) throws IOException {
+        int callAPICount = 0;
         for (Following following : followings) {
             // 只有在没有存昵称或者上次昵称获取时间超过3天才会获取昵称
             Long lastModifiedTime = following.getLastModifiedTime();
@@ -120,8 +121,10 @@ public class BilibiliListener {
                     following.setName(space.getName() + "(" + space.getMid() + ")");
                     following.setLastModifiedTime(System.currentTimeMillis());
                 }
+                callAPICount++;
             }
         }
+        log.info("使用API获取了{}个B站数据", callAPICount);
     }
 
     @OnGroup
