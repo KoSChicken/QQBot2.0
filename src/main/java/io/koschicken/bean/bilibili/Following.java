@@ -10,4 +10,5 @@ public class Following {
     private String name;
     private boolean notification;
     private boolean noticed;
+    private Long lastModifiedTime;
 }

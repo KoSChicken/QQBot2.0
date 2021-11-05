@@ -108,9 +108,18 @@ public class BilibiliListener {
 
     private void dealName(List<Following> followings) throws IOException {
         for (Following following : followings) {
-            Space space = Space.getSpace(following.getUid());
-            if (Objects.nonNull(space)) {
-                following.setName(space.getName() + "(" + space.getMid() + ")");
+            // 只有在没有存昵称或者上次昵称获取时间超过3天才会获取昵称
+            Long lastModifiedTime = following.getLastModifiedTime();
+            if (lastModifiedTime == null) {
+                lastModifiedTime = 0L;
+            }
+            if (Objects.isNull(following.getName()) ||
+                    lastModifiedTime + 1000 * 60 * 60 * 24 * 3 < System.currentTimeMillis()) {
+                Space space = Space.getSpace(following.getUid());
+                if (Objects.nonNull(space)) {
+                    following.setName(space.getName() + "(" + space.getMid() + ")");
+                    following.setLastModifiedTime(System.currentTimeMillis());
+                }
             }
         }
     }
@@ -162,7 +171,7 @@ public class BilibiliListener {
         if (CollectionUtils.isEmpty(followingList)) {
             followingList = new ArrayList<>();
         }
-        followingList.add(new Following(uid, name, true, false));
+        followingList.add(new Following(uid, name, true, false, System.currentTimeMillis()));
         GROUP_BILIBILI_MAP.remove(groupCode);
         GROUP_BILIBILI_MAP.put(groupCode, followingList);
         String jsonString = JSON.toJSONString(GROUP_BILIBILI_MAP);
