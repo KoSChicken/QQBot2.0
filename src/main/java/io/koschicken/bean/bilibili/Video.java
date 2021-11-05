@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import io.koschicken.utils.HttpUtils;
 import io.koschicken.utils.bilibili.BVAVUtils;
+import io.koschicken.utils.bilibili.BilibiliUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -11,8 +12,6 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static io.koschicken.constants.Constants.COMMON_CONFIG;
 
@@ -108,24 +107,13 @@ public class Video {
         JSONObject jsonObject = JSON.parseObject(videoByBV);
         JSONObject data = jsonObject.getJSONObject("data");
         title = data.getString("title");
-        String fileName = getImageName(data.getString("pic"));
+        URL imageUrl = new URL(data.getString("pic"));
+        String fileName = BilibiliUtils.getImageName(imageUrl);
         if (pic == null || pic.getName().equals(fileName)) {
             pic = new File(VIDEO_TEMP_FOLDER + fileName);
             FileUtils.deleteQuietly(pic);
             FileUtils.touch(pic);
-            URL imageUrl = new URL(data.getString("pic"));
             FileUtils.copyURLToFile(imageUrl, pic);
         }
-    }
-
-    private String getImageName(String url) {
-        String regex = "http://i0.hdslb.com/bfs/archive/(.*)";
-        String result = null;
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(url);
-        while (matcher.find()) {
-            result = matcher.group(1);
-        }
-        return result;
     }
 }

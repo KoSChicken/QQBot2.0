@@ -3,6 +3,7 @@ package io.koschicken.bean.bilibili.space;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import io.koschicken.utils.HttpUtils;
+import io.koschicken.utils.bilibili.BilibiliUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -10,8 +11,6 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static io.koschicken.constants.Constants.COMMON_CONFIG;
 import static org.springframework.util.ResourceUtils.isUrl;
@@ -91,11 +90,11 @@ public class Space {
             String coverUrl = liveRoom.getCover();
             boolean isUrl = isUrl(coverUrl);
             if (isUrl) {
-                String fileName = getImageName(coverUrl);
+                URL imageUrl = new URL(coverUrl);
+                String fileName = BilibiliUtils.getImageName(imageUrl);
                 File cover = new File(LIVE_TEMP_FOLDER + fileName);
                 FileUtils.deleteQuietly(cover);
                 FileUtils.touch(cover);
-                URL imageUrl = new URL(coverUrl);
                 FileUtils.copyURLToFile(imageUrl, cover);
                 liveRoom.setCoverFile(cover);
                 space.setLiveRoom(liveRoom);
@@ -103,16 +102,5 @@ public class Space {
             return space;
         }
         return null;
-    }
-
-    private static String getImageName(String url) {
-        String regex = "http://i0.hdslb.com/bfs/live/(.*.jpg)";
-        String result = null;
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(url);
-        while (matcher.find()) {
-            result = matcher.group(1);
-        }
-        return result;
     }
 }

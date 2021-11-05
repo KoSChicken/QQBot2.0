@@ -3,7 +3,7 @@ package io.koschicken.listener;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.google.common.base.Objects;
+import io.koschicken.bean.bilibili.BiliUser;
 import io.koschicken.bean.bilibili.Following;
 import io.koschicken.utils.HttpUtils;
 import io.koschicken.utils.bilibili.BilibiliUtils;
@@ -22,8 +22,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Objects;
 
 import static io.koschicken.constants.Constants.CONFIG_DIR;
 import static io.koschicken.intercept.BotIntercept.GROUP_BILIBILI_MAP;
@@ -39,19 +38,20 @@ public class BilibiliListener {
     @Filter(value = "/fo", matchType = MatchType.STARTS_WITH)
     public void follow(GroupMsg groupMsg, Sender sender) throws IOException {
         BilibiliUtils.bilibiliJSON();
-        Pattern pattern = Pattern.compile("[0-9.]");
-        Matcher matcher = pattern.matcher(groupMsg.getMsg());
-        StringBuilder stringBuilder = new StringBuilder();
-        while (matcher.find()) {
-            stringBuilder.append(matcher.group(0));
-        }
-        String uid = stringBuilder.toString();
-        String groupCode = groupMsg.getGroupInfo().getGroupCode();
-        if (!isFollowed(groupCode, uid)) {
-            follow(groupCode, uid);
-            sender.sendGroupMsg(groupMsg, "已添加" + uid + "的开播提示");
+        String q = groupMsg.getMsg().substring(3).trim();
+        BiliUser user = BilibiliUtils.searchByName(q);
+        if (Objects.nonNull(user)) {
+            String groupCode = groupMsg.getGroupInfo().getGroupCode();
+            String uid = user.getMid();
+            String name = user.getUname() + "(" + uid + ")";
+            if (!isFollowed(groupCode, uid)) {
+                follow(groupCode, uid);
+                sender.sendGroupMsg(groupMsg, "已添加" + name + "的开播提示");
+            } else {
+                sender.sendGroupMsg(groupMsg, name + "已经添加过开播提示了");
+            }
         } else {
-            sender.sendGroupMsg(groupMsg, uid + "已经添加过开播提示了");
+            sender.sendGroupMsg(groupMsg, "未搜索到名为" + q + "的B站用户");
         }
     }
 
@@ -59,19 +59,20 @@ public class BilibiliListener {
     @Filter(value = "/unfo", matchType = MatchType.STARTS_WITH)
     public void unfollow(GroupMsg groupMsg, Sender sender) throws IOException {
         BilibiliUtils.bilibiliJSON();
-        Pattern pattern = Pattern.compile("[0-9.]");
-        Matcher matcher = pattern.matcher(groupMsg.getMsg());
-        StringBuilder stringBuilder = new StringBuilder();
-        while (matcher.find()) {
-            stringBuilder.append(matcher.group(0));
-        }
-        String uid = stringBuilder.toString();
-        String groupCode = groupMsg.getGroupInfo().getGroupCode();
-        if (isFollowed(groupCode, uid)) {
-            unfollow(groupCode, uid);
-            sender.sendGroupMsg(groupMsg, "已删除" + uid + "的开播提示");
+        String q = groupMsg.getMsg().substring(5).trim();
+        BiliUser user = BilibiliUtils.searchByName(q);
+        if (Objects.nonNull(user)) {
+            String groupCode = groupMsg.getGroupInfo().getGroupCode();
+            String uid = user.getMid();
+            String name = user.getUname() + "(" + uid + ")";
+            if (isFollowed(groupCode, uid)) {
+                unfollow(groupCode, uid);
+                sender.sendGroupMsg(groupMsg, "已删除" + name + "的开播提示");
+            } else {
+                sender.sendGroupMsg(groupMsg, name + "不存在");
+            }
         } else {
-            sender.sendGroupMsg(groupMsg, uid + "不存在");
+            sender.sendGroupMsg(groupMsg, "未搜索到名为" + q + "的B站用户");
         }
     }
 
@@ -118,7 +119,7 @@ public class BilibiliListener {
         if (CollectionUtils.isEmpty(followingList)) {
             return false;
         }
-        return followingList.stream().anyMatch(following -> Objects.equal(uid, following.getUid()));
+        return followingList.stream().anyMatch(following -> Objects.equals(uid, following.getUid()));
     }
 
     private void follow(String groupCode, String uid) throws IOException {
@@ -155,7 +156,7 @@ public class BilibiliListener {
 
     private int indexOf(List<Following> followingList, String uid) {
         for (int i = 0; i < followingList.size(); i++) {
-            if (Objects.equal(followingList.get(i).getUid(), uid)) {
+            if (Objects.equals(followingList.get(i).getUid(), uid)) {
                 return i;
             }
         }
