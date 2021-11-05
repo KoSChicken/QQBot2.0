@@ -2,8 +2,10 @@ package io.koschicken.task;
 
 import catcode.CatCodeUtil;
 import io.koschicken.bean.bilibili.Following;
-import io.koschicken.bean.bilibili.Live;
+import io.koschicken.bean.bilibili.space.LiveRoom;
+import io.koschicken.bean.bilibili.space.Space;
 import io.koschicken.utils.bilibili.BilibiliUtils;
+import lombok.extern.slf4j.Slf4j;
 import love.forte.simbot.annotation.Filter;
 import love.forte.simbot.annotation.OnGroup;
 import love.forte.simbot.api.message.events.GroupMsg;
@@ -24,12 +26,13 @@ import static io.koschicken.constants.Constants.COMMON_CONFIG;
 import static io.koschicken.intercept.BotIntercept.GROUP_BILIBILI_MAP;
 import static io.koschicken.intercept.BotIntercept.GROUP_CONFIG_MAP;
 
+@Slf4j
 @Component
 @EnableScheduling
 public class BilibiliTask {
     private static final Logger LOGGER = LoggerFactory.getLogger(BilibiliTask.class);
-    private static final HashMap<String, Live> LIVE_MAP = new HashMap<>();
-    private static final HashMap<String, Live> NOTICED = new HashMap<>();
+    private static final HashMap<String, Space> LIVE_MAP = new HashMap<>();
+    private static final HashMap<String, Space> NOTICED = new HashMap<>();
 
     @Autowired
     BotManager botManager;
@@ -42,12 +45,12 @@ public class BilibiliTask {
         for (Following following : allFollowing) {
             if (following.isNotification()) {
                 String uid = following.getUid();
-                Live live = LIVE_MAP.get(uid);
-                int liveStatus = live.getLiveStatus();
+                Space space = LIVE_MAP.get(uid);
+                int liveStatus = space.getLiveRoom().getLiveStatus();
                 // 直播状态为直播中，且没有提醒过
                 if (liveStatus == 1 && !NOTICED.containsKey(uid)) {
-                    NOTICED.putIfAbsent(uid, live); // 标记已提醒
-                    notice(live);
+                    NOTICED.putIfAbsent(uid, space); // 标记已提醒
+                    notice(space);
                 } else if (liveStatus != 1){
                     NOTICED.remove(uid); // 从已提醒中移除
                 }
@@ -93,11 +96,11 @@ public class BilibiliTask {
             try {
                 if (following.isNotification()) {
                     String uid = following.getUid();
-                    Live biliLive = new Live(uid);
-                    LIVE_MAP.putIfAbsent(uid, biliLive);
+                    Space space = Space.getSpace(uid);
+                    LIVE_MAP.putIfAbsent(uid, space);
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("获取B站用户信息失败，{}", e.getMessage());
             }
         });
         return followingSet;
@@ -105,24 +108,25 @@ public class BilibiliTask {
 
     private String printMap() {
         StringBuilder sb = new StringBuilder();
-        LIVE_MAP.forEach((k, v) -> sb.append("up：").append(v.getUser().getUname()).append("\t")
-                .append("标题：").append(v.getTitle()).append("\t")
-                .append("状态：").append(v.getLiveStatus() == 0 ? "未直播" : "直播中").append("\n"));
+        LIVE_MAP.forEach((k, v) -> sb.append("up：").append(v.getName()).append("\t")
+                .append("标题：").append(v.getLiveRoom().getTitle()).append("\t")
+                .append("状态：").append(v.getLiveRoom().getLiveStatus() == 0 ? "未直播" : "直播中").append("\n"));
         return sb.toString();
     }
 
-    private void notice(Live live) {
+    private void notice(Space space) {
+        LiveRoom liveRoom = space.getLiveRoom();
         CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
         BotSender msgSender = botManager.getDefaultBot().getSender();
         StringBuilder stringBuilder = new StringBuilder();
         String up = "\nUP：";
         String title = "\n标题：";
         String url = "\n链接：";
-        stringBuilder.append("开播啦！").append(up).append(live.getUser().getUname())
-                .append(title).append(live.getTitle()).append(url).append(live.getUrl()).append("\n")
-                .append(catCodeUtil.getStringTemplate().image(live.getCover().getAbsolutePath()));
+        stringBuilder.append("开播啦！").append(up).append(space.getName())
+                .append(title).append(liveRoom.getTitle()).append(url).append(liveRoom.getUrl()).append("\n")
+                .append(catCodeUtil.getStringTemplate().image(liveRoom.getCoverFile().getAbsolutePath()));
         if (stringBuilder.length() > 0) {
-            Set<String> groups = groupCodeByFollowing(live.getMid());
+            Set<String> groups = groupCodeByFollowing(space.getMid());
             for (String groupCode : groups) {
                 if (GROUP_CONFIG_MAP.get(groupCode).isGlobalSwitch()) {
                     msgSender.SENDER.sendGroupMsg(groupCode, stringBuilder.toString());

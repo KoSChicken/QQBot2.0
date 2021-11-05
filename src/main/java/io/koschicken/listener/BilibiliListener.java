@@ -15,10 +15,12 @@ import love.forte.simbot.api.sender.Sender;
 import love.forte.simbot.filter.MatchType;
 import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -113,12 +115,18 @@ public class BilibiliListener {
 
     private boolean isFollowed(String groupCode, String uid) {
         List<Following> followingList = GROUP_BILIBILI_MAP.get(groupCode);
+        if (CollectionUtils.isEmpty(followingList)) {
+            return false;
+        }
         return followingList.stream().anyMatch(following -> Objects.equal(uid, following.getUid()));
     }
 
     private void follow(String groupCode, String uid) throws IOException {
         BilibiliUtils.bilibiliJSON();
         List<Following> followingList = GROUP_BILIBILI_MAP.get(groupCode);
+        if (CollectionUtils.isEmpty(followingList)) {
+            followingList = new ArrayList<>();
+        }
         followingList.add(new Following(uid, true, false));
         GROUP_BILIBILI_MAP.remove(groupCode);
         GROUP_BILIBILI_MAP.put(groupCode, followingList);
