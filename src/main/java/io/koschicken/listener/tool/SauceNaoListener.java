@@ -32,10 +32,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static io.koschicken.constants.Constants.COMMON_CONFIG;
@@ -74,7 +71,7 @@ public class SauceNaoListener {
             List<Result> results = sauce.getResults();
             if (!CollectionUtils.isEmpty(results)) {
                 ArrayList<MessageContent> msgList = new ArrayList<>();
-                results.subList(0, Math.min(3, results.size() - 1)).parallelStream().forEach(result -> msgList.add(buildMessage(result)));
+                results.subList(0, Math.min(3, results.size() - 1)).forEach(result -> msgList.add(buildMessage(result)));
                 MiraiMessageContentBuilder messageContentBuilder = factory.getMessageContentBuilder();
                 messageContentBuilder.forwardMessage(forwardBuilder -> {
                     for (MessageContent messageContent : msgList) {

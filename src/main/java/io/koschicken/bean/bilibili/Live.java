@@ -13,6 +13,7 @@ import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static io.koschicken.constants.Constants.COMMON_CONFIG;
 import static org.springframework.util.ResourceUtils.isUrl;
 
 @Slf4j
@@ -74,7 +75,7 @@ public class Live {
      */
     public static String getLive(String uid) throws IOException {
         String url = "http://api.live.bilibili.com/room/v1/Room/getRoomInfoOld?mid=" + uid;
-        return HttpUtils.get(url);
+        return HttpUtils.get(url, COMMON_CONFIG.getBilibiliCookie());
     }
 
     public void fresh() throws IOException {

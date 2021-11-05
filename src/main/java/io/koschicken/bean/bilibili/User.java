@@ -14,6 +14,8 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static io.koschicken.constants.Constants.COMMON_CONFIG;
+
 @Slf4j
 @Data
 public class User {
@@ -78,7 +80,7 @@ public class User {
      */
     public static String searchUser(String search) throws IOException {
         String url = "https://api.bilibili.com/x/web-interface/search/type?search_type=bili_user&keyword=" + search;
-        return HttpUtils.get(url);
+        return HttpUtils.get(url, COMMON_CONFIG.getBilibiliCookie());
     }
 
     public void fresh() throws IOException {
@@ -126,7 +128,7 @@ public class User {
      */
     public String getUser(String mid) throws IOException {
         String url = "http://api.bilibili.com/x/space/acc/info?mid=" + mid;
-        return HttpUtils.get(url);
+        return HttpUtils.get(url, COMMON_CONFIG.getBilibiliCookie());
     }
 
     private String getImageName(String url) {

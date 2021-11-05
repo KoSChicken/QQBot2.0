@@ -14,6 +14,8 @@ import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static io.koschicken.constants.Constants.COMMON_CONFIG;
+
 @Slf4j
 @Data
 public class Video {
@@ -93,12 +95,12 @@ public class Video {
      */
     public static String getVideoByAV(String av) throws IOException {
         String url = "http://api.bilibili.com/x/web-interface/view?aid=" + av;
-        return HttpUtils.get(url);
+        return HttpUtils.get(url, COMMON_CONFIG.getBilibiliCookie());
     }
 
     public static String getVideoByBV(String bv) throws IOException {
         String url = "http://api.bilibili.com/x/web-interface/view?bvid=" + bv;
-        return HttpUtils.get(url);
+        return HttpUtils.get(url, COMMON_CONFIG.getBilibiliCookie());
     }
 
     public void fresh() throws IOException {
