@@ -7,6 +7,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class Following {
     private String uid;
+    private String name;
     private boolean notification;
     private boolean noticed;
 }

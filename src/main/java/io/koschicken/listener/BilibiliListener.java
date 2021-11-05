@@ -3,6 +3,7 @@ package io.koschicken.listener;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Lists;
 import io.koschicken.bean.bilibili.BiliUser;
 import io.koschicken.bean.bilibili.Following;
 import io.koschicken.utils.HttpUtils;
@@ -10,10 +11,14 @@ import io.koschicken.utils.bilibili.BilibiliUtils;
 import lombok.extern.slf4j.Slf4j;
 import love.forte.simbot.annotation.Filter;
 import love.forte.simbot.annotation.OnGroup;
+import love.forte.simbot.api.message.MessageContent;
+import love.forte.simbot.api.message.MessageContentBuilderFactory;
 import love.forte.simbot.api.message.events.GroupMsg;
 import love.forte.simbot.api.sender.Sender;
+import love.forte.simbot.component.mirai.message.MiraiMessageContentBuilder;
 import love.forte.simbot.filter.MatchType;
 import org.apache.commons.io.FileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -31,8 +36,13 @@ import static io.koschicken.intercept.BotIntercept.GROUP_BILIBILI_MAP;
 @Service
 public class BilibiliListener {
 
-//    @Autowired(required = false)
-//    private MiraiMessageContentBuilderFactory factory;
+    @Autowired
+    private MessageContentBuilderFactory factory;
+
+//    @Autowired
+//    public void setFactory(MiraiMessageContentBuilderFactory factory) {
+//        this.factory = factory;
+//    }
 
     @OnGroup
     @Filter(value = "/fo", matchType = MatchType.STARTS_WITH)
@@ -45,7 +55,7 @@ public class BilibiliListener {
             String uid = user.getMid();
             String name = user.getUname() + "(" + uid + ")";
             if (!isFollowed(groupCode, uid)) {
-                follow(groupCode, uid);
+                follow(groupCode, uid, name);
                 sender.sendGroupMsg(groupMsg, "已添加" + name + "的开播提示");
             } else {
                 sender.sendGroupMsg(groupMsg, name + "已经添加过开播提示了");
@@ -77,6 +87,29 @@ public class BilibiliListener {
     }
 
     @OnGroup
+    @Filter(value = "/lsfo", matchType = MatchType.EQUALS)
+    public void followingList(GroupMsg groupMsg, Sender sender) {
+        BilibiliUtils.bilibiliJSON();
+        String groupCode = groupMsg.getGroupInfo().getGroupCode();
+        List<Following> followings = GROUP_BILIBILI_MAP.get(groupCode);
+        if (CollectionUtils.isEmpty(followings)) {
+            sender.sendGroupMsg(groupMsg, "本群没有关注任何直播间");
+        }
+        List<List<Following>> partition = Lists.partition(followings, 10);
+        MiraiMessageContentBuilder messageContentBuilder = (MiraiMessageContentBuilder) factory.getMessageContentBuilder();
+        messageContentBuilder.forwardMessage(forwardBuilder -> {
+            forwardBuilder.add(groupMsg.getAccountInfo(), "本群关注的直播间有：\n");
+            partition.forEach(list -> {
+                StringBuilder stringBuilder = new StringBuilder();
+                list.forEach(f -> stringBuilder.append(f.getName()).append("\n"));
+                forwardBuilder.add(groupMsg.getAccountInfo(), stringBuilder.toString());
+            });
+        });
+        MessageContent messageContent = messageContentBuilder.build();
+        sender.sendGroupMsg(groupMsg, messageContent);
+    }
+
+    @OnGroup
     @Filter(value = "/cf", matchType = MatchType.STARTS_WITH)
     public void cdq(GroupMsg groupMsg, Sender sender) throws IOException {
         String url = "https://tools.asoulfan.com/api/cfj/?name=";
@@ -95,11 +128,11 @@ public class BilibiliListener {
                     stringBuilder.append(jo.getString("uname")).append("\n");
                 }
                 stringBuilder.append("共").append(jsonObject.getJSONObject("data").getInteger("total")).append("个");
-//                MiraiMessageContentBuilder messageContentBuilder = factory.getMessageContentBuilder();
-//                messageContentBuilder.forwardMessage(forwardBuilder -> forwardBuilder.add(groupMsg.getAccountInfo(), buildMessageContent(stringBuilder.toString())));
-//                MessageContent messageContent = messageContentBuilder.build();
-//                sender.sendGroupMsg(groupMsg, messageContent);
-                sender.sendGroupMsg(groupMsg, stringBuilder.toString());
+                MiraiMessageContentBuilder messageContentBuilder = (MiraiMessageContentBuilder) factory.getMessageContentBuilder();
+                messageContentBuilder.forwardMessage(forwardBuilder -> forwardBuilder.add(groupMsg.getAccountInfo(), stringBuilder.toString()));
+                MessageContent messageContent = messageContentBuilder.build();
+                sender.sendGroupMsg(groupMsg, messageContent);
+//                sender.sendGroupMsg(groupMsg, stringBuilder.toString());
             } else {
                 stringBuilder.append(q).append("没有关注管人");
                 sender.sendGroupMsg(groupMsg, stringBuilder.toString());
@@ -109,11 +142,6 @@ public class BilibiliListener {
         }
     }
 
-//    private MessageContent buildMessageContent(String message) {
-//        MiraiMessageContentBuilder messageContentBuilder = factory.getMessageContentBuilder();
-//        return messageContentBuilder.text(message).build();
-//    }
-
     private boolean isFollowed(String groupCode, String uid) {
         List<Following> followingList = GROUP_BILIBILI_MAP.get(groupCode);
         if (CollectionUtils.isEmpty(followingList)) {
@@ -122,13 +150,13 @@ public class BilibiliListener {
         return followingList.stream().anyMatch(following -> Objects.equals(uid, following.getUid()));
     }
 
-    private void follow(String groupCode, String uid) throws IOException {
+    private void follow(String groupCode, String uid, String name) throws IOException {
         BilibiliUtils.bilibiliJSON();
         List<Following> followingList = GROUP_BILIBILI_MAP.get(groupCode);
         if (CollectionUtils.isEmpty(followingList)) {
             followingList = new ArrayList<>();
         }
-        followingList.add(new Following(uid, true, false));
+        followingList.add(new Following(uid, name, true, false));
         GROUP_BILIBILI_MAP.remove(groupCode);
         GROUP_BILIBILI_MAP.put(groupCode, followingList);
         String jsonString = JSON.toJSONString(GROUP_BILIBILI_MAP);
@@ -136,8 +164,6 @@ public class BilibiliListener {
         FileUtils.deleteQuietly(jsonFile);
         FileUtils.writeStringToFile(jsonFile, jsonString, StandardCharsets.UTF_8);
     }
-
-
 
     private void unfollow(String groupCode, String uid) throws IOException {
         BilibiliUtils.bilibiliJSON();
