@@ -65,7 +65,7 @@ public class PrivateListener {
      * 当然，你也可以使用 {@link love.forte.simbot.api.sender.MsgSender}，
      * 然后 {@code msgSender.SENDER}.
      */
-    @OnPrivate
+    // @OnPrivate
     public void replyPrivateMsg1(PrivateMsg privateMsg, Sender sender) {
         // 获取消息正文。
         MessageContent msgContent = privateMsg.getMsgContent();
