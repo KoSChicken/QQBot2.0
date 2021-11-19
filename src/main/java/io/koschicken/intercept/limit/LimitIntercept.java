@@ -10,6 +10,7 @@ import love.forte.simbot.listener.ListenerInterceptContext;
 import love.forte.simbot.listener.ListenerInterceptor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -21,6 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class LimitIntercept implements ListenerInterceptor {
 
+    @Lazy
     @Autowired
     private BotManager botManager;
 
