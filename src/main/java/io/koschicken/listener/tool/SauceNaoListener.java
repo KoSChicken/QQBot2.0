@@ -19,20 +19,19 @@ import love.forte.simbot.component.mirai.message.MiraiMessageContentBuilder;
 import love.forte.simbot.component.mirai.message.MiraiMessageContentBuilderFactory;
 import love.forte.simbot.filter.MatchType;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.RandomUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.fluent.Request;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static io.koschicken.constants.Constants.COMMON_CONFIG;
@@ -99,40 +98,20 @@ public class SauceNaoListener {
         double similarity = header.getSimilarity();
         String indexName = header.getIndexName().split("-")[0].trim().split(":")[1].trim();
         String thumbnail = header.getThumbnail();
-        try {
-            URL url = new URL(thumbnail);
-            String path = url.getPath();
-            String fileExtension = FilenameUtils.getExtension(path);
-            ResultData data = result.getData();
-            File originalFile = new File(TEMP_DIR + SAUCENAO_FOLDER + FilenameUtils.getName(path) + "." + fileExtension);
-            if (!originalFile.exists()) {
-                saveThumbnail(thumbnail, originalFile);
+        ResultData data = result.getData();
+        StringBuilder message = new StringBuilder();
+        message.append("\n");
+        String[] extUrls = data.getExtUrls();
+        if (extUrls != null) {
+            for (String extUrl : extUrls) {
+                message.append(extUrl).append("\n");
             }
-            StringBuilder message = new StringBuilder();
-            message.append("\n");
-            String[] extUrls = data.getExtUrls();
-            if (extUrls != null) {
-                for (String extUrl : extUrls) {
-                    message.append(extUrl).append("\n");
-                }
-            }
-            message.append("相似度：").append(similarity).append("\n")
-                    .append("类别：").append(indexName).append("\n")
-                    .append("附加信息：").append("\n");
-            JSONObject extInfo = data.getExtInfo();
-            extInfo.keySet().forEach(k -> message.append(k).append(": ").append(extInfo.getString(k)).append("\n"));
-            return messageContentBuilder.image(originalFile.getAbsolutePath()).text(message).build();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return messageContentBuilder.text(e.getClass().getName()).build();
         }
-    }
-
-    private static void saveThumbnail(String thumbnail, File target) throws IOException {
-        HttpEntity entity = Request.Get(thumbnail)
-                .setHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:80.0) Gecko/20100101 Firefox/80.0")
-                .setHeader("Referer", "https://saucenao.com/")
-                .execute().returnResponse().getEntity();
-        FileUtils.copyInputStreamToFile(entity.getContent(), target);
+        message.append("相似度：").append(similarity).append("\n")
+                .append("类别：").append(indexName).append("\n")
+                .append("附加信息：").append("\n");
+        JSONObject extInfo = data.getExtInfo();
+        extInfo.keySet().forEach(k -> message.append(k).append(": ").append(extInfo.getString(k)).append("\n"));
+        return messageContentBuilder.image(thumbnail).text(message).build();
     }
 }
