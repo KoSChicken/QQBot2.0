@@ -195,7 +195,12 @@ public class SetuRunner implements Callable<LoliconResponse> {
                 List<MessageContent> errors = msgList.stream().filter(m -> m.getMsg().toLowerCase().contains("exception")).collect(Collectors.toList());
                 msgList.removeAll(errors);
                 if (CollectionUtils.isEmpty(msgList)) {
-                    msgList.add(messageContentBuilder.text("炸了").build());
+                    File image = new File("./resource/image/zmsn.jpg");
+                    if (image.exists()) {
+                        msgList.add(messageContentBuilder.image(image.getAbsolutePath()).build());
+                    } else {
+                        msgList.add(messageContentBuilder.text("炸了").build());
+                    }
                 }
                 log.info("{} error(s), {} content(s)", errors.size(), msgList.size());
                 return msgList;

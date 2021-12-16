@@ -1,13 +1,18 @@
 package io.koschicken.listener;
 
 import com.alibaba.fastjson.JSON;
+import io.koschicken.InitConfig;
 import io.koschicken.bean.GroupPower;
 import lombok.extern.slf4j.Slf4j;
 import love.forte.simbot.annotation.Filter;
 import love.forte.simbot.annotation.OnGroup;
+import love.forte.simbot.annotation.OnPrivate;
 import love.forte.simbot.api.message.events.GroupMsg;
+import love.forte.simbot.api.message.events.PrivateMsg;
 import love.forte.simbot.api.sender.Sender;
+import love.forte.simbot.bot.BotManager;
 import org.apache.commons.io.FileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -22,6 +27,11 @@ import static io.koschicken.intercept.BotIntercept.GROUP_CONFIG_MAP;
 @Slf4j
 @Service
 public class BotConfigListener {
+
+    private static final String CACHE_DIR = "./cache/";
+
+    @Autowired
+    private BotManager botManager;
 
     @OnGroup
     @Filter("/on")
@@ -56,6 +66,19 @@ public class BotConfigListener {
             if (globalSwitch) {
                 sender.sendGroupMsg(groupMsg, "死了");
             }
+        }
+    }
+
+    @OnPrivate
+    @Filter("/fresh")
+    public void fresh(PrivateMsg privateMsg, Sender sender) throws IOException {
+        String qq = privateMsg.getAccountInfo().getAccountCode();
+        if (!Objects.equals(qq, COMMON_CONFIG.getMasterQQ())) {
+            sender.sendPrivateMsg(privateMsg, "你没有权限哦");
+        } else {
+            FileUtils.deleteDirectory(new File(CACHE_DIR));
+            InitConfig.initConfigs();
+            sender.sendPrivateMsg(privateMsg, "已删除cache文件夹并重新加载配置");
         }
     }
 

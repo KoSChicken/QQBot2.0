@@ -46,13 +46,15 @@ public class BilibiliTask {
             if (following.isNotification()) {
                 String uid = following.getUid();
                 Space space = LIVE_MAP.get(uid);
-                int liveStatus = space.getLiveRoom().getLiveStatus();
-                // 直播状态为直播中，且没有提醒过
-                if (liveStatus == 1 && !NOTICED.containsKey(uid)) {
-                    NOTICED.putIfAbsent(uid, space); // 标记已提醒
-                    notice(space);
-                } else if (liveStatus != 1){
-                    NOTICED.remove(uid); // 从已提醒中移除
+                if (Objects.nonNull(space)) {
+                    int liveStatus = space.getLiveRoom().getLiveStatus();
+                    // 直播状态为直播中，且没有提醒过
+                    if (liveStatus == 1 && !NOTICED.containsKey(uid)) {
+                        NOTICED.putIfAbsent(uid, space); // 标记已提醒
+                        notice(space);
+                    } else if (liveStatus != 1){
+                        NOTICED.remove(uid); // 从已提醒中移除
+                    }
                 }
             }
         }
