@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import love.forte.simbot.api.message.MessageContent;
 import love.forte.simbot.api.message.events.GroupMsg;
+import love.forte.simbot.api.message.events.MsgGet;
+import love.forte.simbot.api.message.events.PrivateMsg;
 import love.forte.simbot.api.message.results.GroupMemberInfo;
 import love.forte.simbot.api.message.results.GroupMemberList;
 import love.forte.simbot.api.sender.MsgSender;
@@ -77,11 +79,11 @@ public class SetuRunner implements Callable<LoliconResponse> {
         }
     }
 
-    private GroupMsg msg;
+    private MsgGet msg;
     private MiraiMessageContentBuilderFactory factory;
     private MsgSender sender;
 
-    public SetuRunner(GroupMsg msg, MiraiMessageContentBuilderFactory factory, MsgSender sender) {
+    public SetuRunner(MsgGet msg, MiraiMessageContentBuilderFactory factory, MsgSender sender) {
         this.msg = msg;
         this.factory = factory;
         this.sender = sender;
@@ -89,7 +91,16 @@ public class SetuRunner implements Callable<LoliconResponse> {
 
     @Override
     public LoliconResponse call() throws Exception {
-        Pixiv pixiv = parseMsg(msg.getMsg());
+        String message;
+        boolean isGroup;
+        if (msg instanceof GroupMsg) {
+            message = ((GroupMsg) msg).getMsg();
+            isGroup = true;
+        } else {
+            message = ((PrivateMsg) msg).getMsg();
+            isGroup = false;
+        }
+        Pixiv pixiv = parseMsg(message);
         String keyword = pixiv.getKeyword();
         int num = pixiv.getNum();
         boolean r18 = pixiv.isR18();
@@ -101,9 +112,9 @@ public class SetuRunner implements Callable<LoliconResponse> {
             String first = keyword.trim().substring(0, 1);
             loliconResponse = new LoliconResponse("", new ArrayList<>(), first + "nmlgb");
         }
-        boolean sent = groupMember(msg, sender, keyword);
+        boolean sent = isGroup && groupMember((GroupMsg) msg, sender, keyword);
         if (!sent) {
-            send(loliconResponse);
+            send(loliconResponse, isGroup);
         }
         return loliconResponse;
     }
@@ -150,7 +161,7 @@ public class SetuRunner implements Callable<LoliconResponse> {
         return i <= 50 && tagList.contains(tag);
     }
 
-    private void send(LoliconResponse loliconResponse) {
+    private void send(LoliconResponse loliconResponse, boolean isGroup) {
         List<MessageContent> msgList = listMsg(loliconResponse);
         if (msgList.size() > 1 || checkR18(loliconResponse)) {
             MiraiMessageContentBuilder messageContentBuilder = factory.getMessageContentBuilder();
@@ -160,9 +171,17 @@ public class SetuRunner implements Callable<LoliconResponse> {
                     }
                 });
             final MiraiMessageContent messageContent = messageContentBuilder.build();
-            sender.SENDER.sendGroupMsg(msg, messageContent);
+            if (isGroup) {
+                sender.SENDER.sendGroupMsg((GroupMsg) msg, messageContent);
+            } else {
+                sender.SENDER.sendPrivateMsg(msg, messageContent);
+            }
         } else {
-            sender.SENDER.sendGroupMsg(msg, msgList.get(0));
+            if (isGroup) {
+                sender.SENDER.sendGroupMsg((GroupMsg) msg, msgList.get(0));
+            } else {
+                sender.SENDER.sendPrivateMsg(msg, msgList.get(0));
+            }
         }
     }
 
@@ -173,7 +192,7 @@ public class SetuRunner implements Callable<LoliconResponse> {
     }
 
     private GroupMemberInfo randomGroupMember() {
-        List<GroupMemberInfo> groupMemberList = sender.GETTER.getGroupMemberList(msg.getGroupInfo().getGroupCode())
+        List<GroupMemberInfo> groupMemberList = sender.GETTER.getGroupMemberList(((GroupMsg) msg).getGroupInfo().getGroupCode())
                 .stream().collect(Collectors.toList());
         Collections.shuffle(groupMemberList);
         return groupMemberList.get(0);

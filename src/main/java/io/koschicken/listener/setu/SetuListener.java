@@ -6,7 +6,10 @@ import io.koschicken.utils.FingerPrint;
 import lombok.extern.slf4j.Slf4j;
 import love.forte.simbot.annotation.Filter;
 import love.forte.simbot.annotation.OnGroup;
+import love.forte.simbot.annotation.OnPrivate;
 import love.forte.simbot.api.message.events.GroupMsg;
+import love.forte.simbot.api.message.events.MsgGet;
+import love.forte.simbot.api.message.events.PrivateMsg;
 import love.forte.simbot.api.sender.MsgSender;
 import love.forte.simbot.component.mirai.message.MiraiMessageContentBuilderFactory;
 import love.forte.simbot.filter.MatchType;
@@ -41,12 +44,17 @@ public class SetuListener {
 
     @Limit(CD)
     @OnGroup
+    @OnPrivate
     @Filter(value = "^叫[车車](.*)(.*)?(|r18)$", matchType = MatchType.REGEX_MATCHES)
-    public void driver1(GroupMsg msg, MsgSender sender) {
+    public void driver1(MsgGet msg, MsgSender sender) {
         String qq = msg.getAccountInfo().getAccountCode();
         int i = RandomUtils.nextInt(1, 100);
         if (i <= 10 && !Objects.equals(qq, COMMON_CONFIG.getMasterQQ())) {
-            sender.SENDER.sendGroupMsg(msg, "累了，歇会");
+            if (msg instanceof GroupMsg) {
+                sender.SENDER.sendGroupMsg((GroupMsg) msg, "歇会");
+            } else {
+                sender.SENDER.sendPrivateMsg(msg, "歇会");
+            }
         } else {
             executorService.submit(new SetuRunner(msg, factory, sender));
         }
@@ -54,21 +62,33 @@ public class SetuListener {
 
     @Limit(CD * 2)
     @OnGroup
+    @OnPrivate
     @Filter(value = "^[来來](.*?)[点點丶份张張](.*?)的?(|r18)[色瑟涩][图圖]$", matchType = MatchType.REGEX_MATCHES)
-    public void driver2(GroupMsg msg, MsgSender sender) {
+    public void driver2(MsgGet msg, MsgSender sender) {
         String qq = msg.getAccountInfo().getAccountCode();
         int i = RandomUtils.nextInt(1, 100);
         if (i <= 10 && !Objects.equals(qq, COMMON_CONFIG.getMasterQQ())) {
-            sender.SENDER.sendGroupMsg(msg, "累了，歇会");
+            if (msg instanceof GroupMsg) {
+                sender.SENDER.sendGroupMsg((GroupMsg) msg, "来nm");
+            } else {
+                sender.SENDER.sendPrivateMsg(msg, "\uD83D\uDD95");
+            }
         } else {
             executorService.submit(new SetuRunner(msg, factory, sender));
         }
     }
 
     @OnGroup
-    public void callPic(GroupMsg groupMsg, MsgSender sender) {
+    @OnPrivate
+    public void callPic(MsgGet msg, MsgSender sender) {
         File call = new File("./resource/image/call.jpg");
-        List<Neko> cats = groupMsg.getMsgContent().getCats();
+        List<Neko> cats;
+        if (msg instanceof GroupMsg) {
+            cats = ((GroupMsg) msg).getMsgContent().getCats();
+        } else {
+            cats = ((PrivateMsg) msg).getMsgContent().getCats();
+        }
+
         List<Neko> imageNekoList = cats.stream().filter(cat -> "image".equals(cat.getType())).collect(Collectors.toList());
         imageNekoList.forEach(neko -> {
             String url = neko.get("url");
@@ -81,7 +101,7 @@ public class SetuListener {
                     float compare = fp1.compare(fp2);
                     log.info("call pic compare, similar rate: {}", compare);
                     if (compare >= 0.95) {
-                        executorService.submit(new SetuRunner(groupMsg, factory, sender));
+                        executorService.submit(new SetuRunner(msg, factory, sender));
                     }
                     FileUtils.delete(file);
                 }
