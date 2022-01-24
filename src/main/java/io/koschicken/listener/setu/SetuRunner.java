@@ -83,6 +83,10 @@ public class SetuRunner implements Callable<LoliconResponse> {
     private MiraiMessageContentBuilderFactory factory;
     private MsgSender sender;
 
+    public SetuRunner(MiraiMessageContentBuilderFactory factory) {
+        this.factory = factory;
+    }
+
     public SetuRunner(MsgGet msg, MiraiMessageContentBuilderFactory factory, MsgSender sender) {
         this.msg = msg;
         this.factory = factory;
@@ -91,14 +95,15 @@ public class SetuRunner implements Callable<LoliconResponse> {
 
     @Override
     public LoliconResponse call() throws Exception {
-        String message;
-        boolean isGroup;
-        if (msg instanceof GroupMsg) {
-            message = ((GroupMsg) msg).getMsg();
-            isGroup = true;
-        } else {
-            message = ((PrivateMsg) msg).getMsg();
-            isGroup = false;
+        String message = "叫车";
+        boolean isGroup = true;
+        if (Objects.nonNull(msg)) {
+            if (msg instanceof PrivateMsg) {
+                message = ((PrivateMsg) msg).getMsg();
+                isGroup = false;
+            } else if (msg instanceof GroupMsg) {
+                message = ((GroupMsg) msg).getMsg();
+            }
         }
         Pixiv pixiv = parseMsg(message);
         String keyword = pixiv.getKeyword();
@@ -237,7 +242,7 @@ public class SetuRunner implements Callable<LoliconResponse> {
         return msgList;
     }
 
-    private MessageContent buildMessage(Pixiv p) {
+    public MessageContent buildMessage(Pixiv p) {
         MiraiMessageContentBuilder messageContentBuilder = factory.getMessageContentBuilder();
         String pid = p.getPid().toString();
         try {
