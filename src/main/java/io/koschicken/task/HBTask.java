@@ -11,7 +11,6 @@ import love.forte.simbot.api.sender.BotSender;
 import love.forte.simbot.bot.BotManager;
 import love.forte.simbot.component.mirai.message.MiraiMessageContentBuilder;
 import love.forte.simbot.component.mirai.message.MiraiMessageContentBuilderFactory;
-import org.apache.commons.lang3.RandomUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -39,7 +38,7 @@ public class HBTask {
         for (String groupCode : groups) {
             GroupPower groupPower = GROUP_CONFIG_MAP.get(groupCode);
             if (groupPower.isGlobalSwitch() && groupPower.isMaiyaoSwitch()) {
-                LoliconResponse loliconResponse = Pixiv.get(null, 1, RandomUtils.nextBoolean());
+                LoliconResponse loliconResponse = Pixiv.get(null, 1, false);
                 Pixiv pixiv = loliconResponse.getData().get(0);
                 SetuRunner setuRunner = new SetuRunner(factory);
                 MessageContent messageContent = setuRunner.buildMessage(pixiv);

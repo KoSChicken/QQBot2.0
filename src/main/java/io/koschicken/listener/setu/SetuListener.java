@@ -36,7 +36,7 @@ import static io.koschicken.constants.Constants.COMMON_CONFIG;
 public class SetuListener {
 
     private static final ExecutorService executorService = Executors.newFixedThreadPool(5);
-    private static final long CD = 15;
+    private static final long CD = 60;
     private static final String TEMP_DIR = "./temp/";
 
     @Autowired
@@ -67,7 +67,7 @@ public class SetuListener {
     public void driver2(MsgGet msg, MsgSender sender) {
         String qq = msg.getAccountInfo().getAccountCode();
         int i = RandomUtils.nextInt(1, 100);
-        if (i <= 10 && !Objects.equals(qq, COMMON_CONFIG.getMasterQQ())) {
+        if (i <= 50 && !Objects.equals(qq, COMMON_CONFIG.getMasterQQ())) {
             if (msg instanceof GroupMsg) {
                 sender.SENDER.sendGroupMsg((GroupMsg) msg, "来nm");
             } else {
