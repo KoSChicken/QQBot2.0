@@ -69,6 +69,25 @@ public class BotConfigListener {
         }
     }
 
+    @OnGroup
+    @Filter("/st")
+    public void setuSwitch(GroupMsg groupMsg, Sender sender) {
+        String qq = groupMsg.getAccountInfo().getAccountCode();
+        if (!Objects.equals(qq, COMMON_CONFIG.getMasterQQ())) {
+            sender.sendGroupMsg(groupMsg, "你没有权限哦");
+        } else {
+            String groupCode = groupMsg.getGroupInfo().getGroupCode();
+            GroupPower groupPower = GROUP_CONFIG_MAP.get(groupCode);
+            groupPower.setSetuSwitch(!groupPower.isSetuSwitch());
+            setJson(GROUP_CONFIG_MAP);
+            if (groupPower.isSetuSwitch()) {
+                sender.sendGroupMsg(groupMsg, "开车！");
+            } else {
+                sender.sendGroupMsg(groupMsg, "停车！");
+            }
+        }
+    }
+
     @OnPrivate
     @Filter("/fresh")
     public void fresh(PrivateMsg privateMsg, Sender sender) throws IOException {

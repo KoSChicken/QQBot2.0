@@ -1,6 +1,7 @@
 package io.koschicken.listener.setu;
 
 import catcode.Neko;
+import io.koschicken.bean.GroupPower;
 import io.koschicken.intercept.limit.Limit;
 import io.koschicken.utils.FingerPrint;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +31,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static io.koschicken.constants.Constants.COMMON_CONFIG;
+import static io.koschicken.intercept.BotIntercept.GROUP_CONFIG_MAP;
 
 @Slf4j
 @Service
@@ -47,6 +49,9 @@ public class SetuListener {
     @OnPrivate
     @Filter(value = "^叫[车車](.*)(.*)?(|r18)$", matchType = MatchType.REGEX_MATCHES)
     public void driver1(MsgGet msg, MsgSender sender) {
+        if (msg instanceof GroupMsg && !isSetuOn(((GroupMsg) msg).getGroupInfo().getGroupCode())) {
+            return;
+        }
         String qq = msg.getAccountInfo().getAccountCode();
         int i = RandomUtils.nextInt(1, 100);
         if (i <= 10 && !Objects.equals(qq, COMMON_CONFIG.getMasterQQ())) {
@@ -65,6 +70,9 @@ public class SetuListener {
     @OnPrivate
     @Filter(value = "^[来來](.*?)[点點丶份张張](.*?)的?(|r18)[色瑟涩][图圖]$", matchType = MatchType.REGEX_MATCHES)
     public void driver2(MsgGet msg, MsgSender sender) {
+        if (msg instanceof GroupMsg && !isSetuOn(((GroupMsg) msg).getGroupInfo().getGroupCode())) {
+            return;
+        }
         String qq = msg.getAccountInfo().getAccountCode();
         int i = RandomUtils.nextInt(1, 100);
         if (i <= 50 && !Objects.equals(qq, COMMON_CONFIG.getMasterQQ())) {
@@ -109,5 +117,10 @@ public class SetuListener {
                 e.printStackTrace();
             }
         });
+    }
+
+    private boolean isSetuOn(String groupCode) {
+        GroupPower groupPower = GROUP_CONFIG_MAP.get(groupCode);
+        return groupPower.isSetuSwitch();
     }
 }
