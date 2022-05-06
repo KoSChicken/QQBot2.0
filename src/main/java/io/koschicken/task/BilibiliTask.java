@@ -37,7 +37,7 @@ public class BilibiliTask {
     @Autowired
     BotManager botManager;
 
-    @Scheduled(cron = "0 */1 * * * ?")
+    @Scheduled(cron = "*/20 * * * * *")
     public void liveNotice() {
         BilibiliUtils.bilibiliJSON();
         Set<Following> allFollowing = fetchLive();
@@ -130,7 +130,7 @@ public class BilibiliTask {
         if (stringBuilder.length() > 0) {
             Set<String> groups = groupCodeByFollowing(space.getMid());
             for (String groupCode : groups) {
-                if (GROUP_CONFIG_MAP.get(groupCode).isGlobalSwitch()) {
+                if (Objects.nonNull(GROUP_CONFIG_MAP.get(groupCode)) && GROUP_CONFIG_MAP.get(groupCode).isGlobalSwitch()) {
                     msgSender.SENDER.sendGroupMsg(groupCode, stringBuilder.toString());
                 }
             }
