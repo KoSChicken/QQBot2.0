@@ -35,8 +35,10 @@ public class Video {
     private final String bv;
     private File pic;
     private String title;
+    private String owner;
+    private String desc;
 
-    public Video(String videoCode, boolean isBv) throws IOException {
+    public Video(String videoCode, boolean isBv) {
         if (isBv) {
             av = BVAVUtils.b2v(videoCode);
             bv = videoCode;
@@ -107,6 +109,9 @@ public class Video {
         JSONObject jsonObject = JSON.parseObject(videoByBV);
         JSONObject data = jsonObject.getJSONObject("data");
         title = data.getString("title");
+        desc = data.getString("desc");
+        JSONObject ownerJson = data.getJSONObject("owner");
+        owner = ownerJson.getString("name");
         URL imageUrl = new URL(data.getString("pic"));
         String fileName = BilibiliUtils.getImageName(imageUrl);
         if (pic == null || pic.getName().equals(fileName)) {

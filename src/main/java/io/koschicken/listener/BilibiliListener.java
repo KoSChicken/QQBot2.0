@@ -1,11 +1,13 @@
 package io.koschicken.listener;
 
+import catcode.CatCodeUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import io.koschicken.bean.bilibili.BiliUser;
 import io.koschicken.bean.bilibili.Following;
+import io.koschicken.bean.bilibili.Video;
 import io.koschicken.bean.bilibili.space.Space;
 import io.koschicken.utils.HttpUtils;
 import io.koschicken.utils.bilibili.BilibiliUtils;
@@ -25,13 +27,18 @@ import org.springframework.util.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static io.koschicken.constants.Constants.CONFIG_DIR;
 import static io.koschicken.intercept.BotIntercept.GROUP_BILIBILI_MAP;
+import static io.koschicken.intercept.BotIntercept.GROUP_CONFIG_MAP;
 
 @Slf4j
 @Service
@@ -106,39 +113,10 @@ public class BilibiliListener {
         sender.sendGroupMsg(groupMsg, messageContent);
     }
 
-    private void dealName(List<Following> followings, String groupCode) throws IOException {
-        int callAPICount = 0;
-        for (Following following : followings) {
-            // 只有在没有存昵称或者上次昵称获取时间超过3天才会获取昵称
-            Long lastModifiedTime = following.getLastModifiedTime();
-            if (lastModifiedTime == null) {
-                lastModifiedTime = 0L;
-            }
-            if (Objects.isNull(following.getName()) ||
-                    lastModifiedTime + 1000 * 60 * 60 * 24 * 3 < System.currentTimeMillis()) {
-                Space space = Space.getSpace(following.getUid());
-                if (Objects.nonNull(space)) {
-                    following.setName(space.getName() + "(" + space.getMid() + ")");
-                    following.setLastModifiedTime(System.currentTimeMillis());
-                }
-                callAPICount++;
-            }
-        }
-        if (callAPICount > 0) {
-            GROUP_BILIBILI_MAP.remove(groupCode);
-            GROUP_BILIBILI_MAP.put(groupCode, followings);
-            String jsonString = JSON.toJSONString(GROUP_BILIBILI_MAP);
-            File jsonFile = new File(CONFIG_DIR + "/bilibili.json");
-            FileUtils.deleteQuietly(jsonFile);
-            FileUtils.writeStringToFile(jsonFile, jsonString, StandardCharsets.UTF_8);
-            log.info("使用API获取了{}个B站数据", callAPICount);
-        }
-    }
-
     @OnGroup
     @Filter(value = "/cf", matchType = MatchType.STARTS_WITH)
     public void cdq(GroupMsg groupMsg, Sender sender) throws IOException {
-        String url = "https://tools.asoulfan.com/api/cfj/?name=";
+        String url = "https://api.asoulfan.com/cfj/?name=";
         String q = groupMsg.getMsg().substring(3).trim();
         String s = HttpUtils.get(url + q);
         log.info(s);
@@ -165,6 +143,36 @@ public class BilibiliListener {
             }
         } else {
             sender.sendGroupMsg(groupMsg, "查询失败");
+        }
+    }
+
+    @OnGroup
+    @Filter(value = "bilibili.com/video/", matchType = MatchType.CONTAINS)
+    public void videoInfo(GroupMsg groupMsg, Sender sender)  {
+        String baseUrl = "https://www.bilibili.com/video/";
+        String msg = groupMsg.getMsg();
+        Pattern pattern = Pattern.compile("https?://(|www.)bilibili.com/video/[/\\S]+");
+        Matcher m = pattern.matcher(msg);
+        while (m.find()) {
+            try {
+                String group = m.group();
+                URL url = new URL(group);
+                String bv = url.getPath().substring(url.getPath().lastIndexOf("/") + 1);
+                Video video = new Video(bv, true);
+                CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
+                StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.append(catCodeUtil.getStringTemplate().image(video.getPic().getAbsolutePath()))
+                        .append("\nUP：").append(video.getOwner()).append("\n标题：").append(video.getTitle())
+                        .append("\n链接：").append(baseUrl).append(video.getBv());
+                if (stringBuilder.length() > 0) {
+                    String groupCode = groupMsg.getGroupInfo().getGroupCode();
+                    if (Objects.nonNull(GROUP_CONFIG_MAP.get(groupCode)) && GROUP_CONFIG_MAP.get(groupCode).isGlobalSwitch()) {
+                        sender.sendGroupMsg(groupCode, stringBuilder.toString());
+                    }
+                }
+            } catch (MalformedURLException e) {
+                log.error("解析url失败");
+            }
         }
     }
 
@@ -213,5 +221,52 @@ public class BilibiliListener {
             }
         }
         return -1;
+    }
+
+    private void dealName(List<Following> followings, String groupCode) throws IOException {
+        int callAPICount = 0;
+        for (Following following : followings) {
+            // 只有在没有存昵称或者上次昵称获取时间超过3天才会获取昵称
+            Long lastModifiedTime = following.getLastModifiedTime();
+            if (lastModifiedTime == null) {
+                lastModifiedTime = 0L;
+            }
+            if (Objects.isNull(following.getName()) ||
+                    lastModifiedTime + 1000 * 60 * 60 * 24 * 3 < System.currentTimeMillis()) {
+                Space space = Space.getSpace(following.getUid());
+                if (Objects.nonNull(space)) {
+                    following.setName(space.getName() + "(" + space.getMid() + ")");
+                    following.setLastModifiedTime(System.currentTimeMillis());
+                }
+                callAPICount++;
+            }
+        }
+        if (callAPICount > 0) {
+            GROUP_BILIBILI_MAP.remove(groupCode);
+            GROUP_BILIBILI_MAP.put(groupCode, followings);
+            String jsonString = JSON.toJSONString(GROUP_BILIBILI_MAP);
+            File jsonFile = new File(CONFIG_DIR + "/bilibili.json");
+            FileUtils.deleteQuietly(jsonFile);
+            FileUtils.writeStringToFile(jsonFile, jsonString, StandardCharsets.UTF_8);
+            log.info("使用API获取了{}个B站数据", callAPICount);
+        }
+    }
+
+    public static void main(String[] args) {
+        String msg = "123222https://www.bilibili.com/video/BV1t34y1E7m3\n" +
+                "https://www.bilibili.com/video/BV1Uv4y1N7ih?spm_id_from=333.999.0.0";
+        Pattern pattern = Pattern.compile("https?://(|www.)bilibili.com/video/[/\\S]+(?)");
+        Matcher m = pattern.matcher(msg);
+        while (m.find()) {
+            String group = m.group();
+            System.out.println(group);
+            try {
+                URL url = new URL(group);
+                String path = url.getPath();
+                System.out.println(path.substring(path.lastIndexOf("/") + 1));
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

@@ -5,13 +5,13 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import io.koschicken.bean.bilibili.BiliUser;
 import io.koschicken.bean.bilibili.Following;
+import io.koschicken.bean.bilibili.Video;
 import io.koschicken.utils.HttpUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -75,9 +75,14 @@ public class BilibiliUtils {
         return path.substring(path.lastIndexOf('/') + 1);
     }
 
-    public static void main(String[] args) throws MalformedURLException {
-        String url = "http://i0.hdslb.com/bfs/live/new_room_cover/2b3955ab074e0d7fb9fcf849bb217de0b24c9d06.jpg";
-        String imageName = getImageName(new URL(url));
-        System.out.println(imageName);
+    public static void main(String[] args) throws Exception {
+//        String url = "http://i0.hdslb.com/bfs/live/new_room_cover/2b3955ab074e0d7fb9fcf849bb217de0b24c9d06.jpg";
+//        String imageName = getImageName(new URL(url));
+//        System.out.println(imageName);
+        String url = "https://www.bilibili.com/video/BV1t34y1E7m3";
+        String bv = url.substring(url.lastIndexOf("/") + 1);
+        System.out.println(bv);
+        Video video = new Video(bv, true);
+        System.out.println(video);
     }
 }
