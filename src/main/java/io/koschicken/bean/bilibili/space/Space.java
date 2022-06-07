@@ -11,6 +11,7 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Objects;
 
 import static io.koschicken.constants.Constants.COMMON_CONFIG;
 import static org.springframework.util.ResourceUtils.isUrl;
@@ -86,18 +87,22 @@ public class Space {
         String data = jsonObject.getString("data");
         if (data != null) {
             Space space = JSON.parseObject(data, Space.class);
-            LiveRoom liveRoom = space.getLiveRoom();
-            String coverUrl = liveRoom.getCover();
-            boolean isUrl = isUrl(coverUrl);
-            if (isUrl) {
-                URL imageUrl = new URL(coverUrl);
-                String fileName = BilibiliUtils.getImageName(imageUrl);
-                File cover = new File(LIVE_TEMP_FOLDER + fileName);
-                FileUtils.deleteQuietly(cover);
-                FileUtils.touch(cover);
-                FileUtils.copyURLToFile(imageUrl, cover);
-                liveRoom.setCoverFile(cover);
-                space.setLiveRoom(liveRoom);
+            if (Objects.nonNull(space)) {
+                LiveRoom liveRoom = space.getLiveRoom();
+                if (Objects.nonNull(liveRoom)) {
+                    String coverUrl = liveRoom.getCover();
+                    boolean isUrl = isUrl(coverUrl);
+                    if (isUrl) {
+                        URL imageUrl = new URL(coverUrl);
+                        String fileName = BilibiliUtils.getImageName(imageUrl);
+                        File cover = new File(LIVE_TEMP_FOLDER + fileName);
+                        FileUtils.deleteQuietly(cover);
+                        FileUtils.touch(cover);
+                        FileUtils.copyURLToFile(imageUrl, cover);
+                        liveRoom.setCoverFile(cover);
+                        space.setLiveRoom(liveRoom);
+                    }
+                }
             }
             return space;
         }
