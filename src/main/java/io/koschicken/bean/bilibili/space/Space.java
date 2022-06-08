@@ -90,7 +90,7 @@ public class Space {
             if (Objects.nonNull(space)) {
                 LiveRoom liveRoom = space.getLiveRoom();
                 if (Objects.nonNull(liveRoom)) {
-                    String coverUrl = liveRoom.getCover();
+                    String coverUrl = liveRoom.getCover().replace("http:", "https:");
                     boolean isUrl = isUrl(coverUrl);
                     if (isUrl) {
                         URL imageUrl = new URL(coverUrl);

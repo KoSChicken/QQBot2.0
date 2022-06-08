@@ -40,7 +40,7 @@ public class BiliUser {
         this.usign = usign;
         this.fans = fans;
         this.videos = videos;
-        String fullUpic = upic.startsWith("http") ? upic : "http:" + upic;
+        String fullUpic = upic.startsWith("http") ? upic.replace("http:", "https:") : "https://" + upic;
         this.upic = fullUpic;
         URL url = new URL(fullUpic);
         String imageName = BilibiliUtils.getImageName(url);

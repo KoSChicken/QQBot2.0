@@ -102,7 +102,8 @@ public class BilibiliTask {
                     LIVE_MAP.putIfAbsent(uid, space);
                 }
             } catch (IOException e) {
-                log.error("获取B站用户信息失败，{}", e.getMessage());
+                // log.error("获取B站用户信息失败，{}", e.getMessage());
+                e.printStackTrace();
             }
         });
         return followingSet;
