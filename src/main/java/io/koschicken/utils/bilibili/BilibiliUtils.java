@@ -56,7 +56,7 @@ public class BilibiliUtils {
     }
 
     public static BiliUser searchByName(String name) throws IOException {
-        String url = "http://api.bilibili.com/x/web-interface/search/type?search_type=bili_user&keyword=";
+        String url = "https://api.bilibili.com/x/web-interface/search/type?search_type=bili_user&keyword=";
         String json = HttpUtils.get(url + name, COMMON_CONFIG.getBilibiliCookie());
         JSONObject jsonObject = JSON.parseObject(json);
         JSONObject data = jsonObject.getJSONObject("data");

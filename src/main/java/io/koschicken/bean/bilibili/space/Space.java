@@ -81,7 +81,7 @@ public class Space {
     private LiveRoom liveRoom;
 
     public static Space getSpace(String mid) throws IOException {
-        String url = "http://api.bilibili.com/x/space/acc/info?mid=" + mid;
+        String url = "https://api.bilibili.com/x/space/acc/info?mid=" + mid;
         String json = HttpUtils.get(url, COMMON_CONFIG.getBilibiliCookie());
         JSONObject jsonObject = JSON.parseObject(json);
         String data = jsonObject.getString("data");

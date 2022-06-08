@@ -158,7 +158,7 @@ public class BilibiliListener {
                 String group = m.group();
                 URL url = new URL(group);
                 String bv = url.getPath().substring(url.getPath().lastIndexOf("/") + 1);
-                Video video = new Video(bv, true);
+                Video video = bv.startsWith("BV") ? new Video(bv, true) : new Video(bv, false);
                 CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
                 StringBuilder stringBuilder = new StringBuilder();
                 stringBuilder.append(catCodeUtil.getStringTemplate().image(video.getPic().getAbsolutePath()))

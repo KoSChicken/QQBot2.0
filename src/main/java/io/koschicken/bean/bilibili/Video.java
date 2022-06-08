@@ -95,12 +95,12 @@ public class Video {
      * }}
      */
     public static String getVideoByAV(String av) throws IOException {
-        String url = "http://api.bilibili.com/x/web-interface/view?aid=" + av;
+        String url = "https://api.bilibili.com/x/web-interface/view?aid=" + av;
         return HttpUtils.get(url, COMMON_CONFIG.getBilibiliCookie());
     }
 
     public static String getVideoByBV(String bv) throws IOException {
-        String url = "http://api.bilibili.com/x/web-interface/view?bvid=" + bv;
+        String url = "https://api.bilibili.com/x/web-interface/view?bvid=" + bv;
         return HttpUtils.get(url, COMMON_CONFIG.getBilibiliCookie());
     }
 
