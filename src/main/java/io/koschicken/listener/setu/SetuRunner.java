@@ -262,7 +262,7 @@ public class SetuRunner implements Callable<LoliconResponse> {
             return messageContentBuilder.image(compressedJPG.getAbsolutePath()).text(message).build();
         } catch (IOException e) {
             e.printStackTrace();
-            return messageContentBuilder.text(e.getClass().getName()).build();
+            return messageContentBuilder.text("[error]" + e.getClass().getName()).build();
         }
     }
 
