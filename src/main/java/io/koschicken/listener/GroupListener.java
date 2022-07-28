@@ -10,9 +10,11 @@ import love.forte.simbot.api.message.containers.GroupInfo;
 import love.forte.simbot.api.message.events.GroupMsg;
 import love.forte.simbot.api.sender.Sender;
 import org.apache.commons.lang3.RandomUtils;
+import org.apache.http.client.fluent.Request;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * 群消息监听的示例类。
@@ -49,6 +51,14 @@ public class GroupListener {
     @Filter("贵族叫车")
     public void callAnotherBot(GroupMsg groupMsg, Sender sender) {
         sender.sendGroupMsg(groupMsg, "/hso");
+    }
+
+    @OnGroup
+    @Filter(atBot = true)
+    public void zuichou(GroupMsg groupMsg, Sender sender) throws IOException {
+        String api = "http://81.70.100.130/api/Ridicule.php?msg=";
+        String string = Request.Get(api + RandomUtils.nextInt(1,6)).execute().returnContent().asString();
+        sender.sendGroupMsg(groupMsg, string);
     }
 
     /**

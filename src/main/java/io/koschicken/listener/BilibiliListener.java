@@ -10,6 +10,7 @@ import io.koschicken.bean.bilibili.Following;
 import io.koschicken.bean.bilibili.Video;
 import io.koschicken.bean.bilibili.space.Space;
 import io.koschicken.utils.HttpUtils;
+import io.koschicken.utils.URLUtils;
 import io.koschicken.utils.bilibili.BilibiliUtils;
 import lombok.extern.slf4j.Slf4j;
 import love.forte.simbot.annotation.Filter;
@@ -32,6 +33,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -148,7 +150,7 @@ public class BilibiliListener {
 
     @OnGroup
     @Filter(value = "bilibili.com/video/", matchType = MatchType.CONTAINS)
-    public void videoInfo(GroupMsg groupMsg, Sender sender)  {
+    public void videoInfo(GroupMsg groupMsg, Sender sender) {
         String baseUrl = "https://www.bilibili.com/video/";
         String msg = groupMsg.getMsg();
         Pattern pattern = Pattern.compile("https?://(|www.)bilibili.com/video/[/\\S]+");
@@ -157,13 +159,14 @@ public class BilibiliListener {
             try {
                 String group = m.group();
                 URL url = new URL(group);
+                String t = getTimestamp(url);
                 String bv = url.getPath().substring(url.getPath().lastIndexOf("/") + 1);
                 Video video = bv.startsWith("BV") ? new Video(bv, true) : new Video(bv, false);
                 CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
                 StringBuilder stringBuilder = new StringBuilder();
                 stringBuilder.append(catCodeUtil.getStringTemplate().image(video.getPic().getAbsolutePath()))
                         .append("\nUP：").append(video.getOwner()).append("\n标题：").append(video.getTitle())
-                        .append("\n链接：").append(baseUrl).append(video.getBv());
+                        .append("\n链接：").append(baseUrl).append(video.getBv()).append(t);
                 if (stringBuilder.length() > 0) {
                     String groupCode = groupMsg.getGroupInfo().getGroupCode();
                     if (Objects.nonNull(GROUP_CONFIG_MAP.get(groupCode)) && GROUP_CONFIG_MAP.get(groupCode).isGlobalSwitch()) {
@@ -174,6 +177,17 @@ public class BilibiliListener {
                 log.error("解析url失败");
             }
         }
+    }
+
+    private String getTimestamp(URL url) {
+        Map<String, String> queryMap = URLUtils.getQueryMap(url.getQuery());
+        if (!CollectionUtils.isEmpty(queryMap)) {
+            String t = queryMap.get("t");
+            if (Objects.nonNull(t)) {
+               return "?t=" + URLUtils.string2Float(t);
+            }
+        }
+        return "";
     }
 
     private boolean isFollowed(String groupCode, String uid) {
@@ -254,7 +268,7 @@ public class BilibiliListener {
 
     public static void main(String[] args) {
         String msg = "123222https://www.bilibili.com/video/BV1t34y1E7m3\n" +
-                "https://www.bilibili.com/video/BV1Uv4y1N7ih?spm_id_from=333.999.0.0";
+                "https://www.bilibili.com/video/BV1Uv4y1N7ih?t=13&spm_id_from=333.999.0.0";
         Pattern pattern = Pattern.compile("https?://(|www.)bilibili.com/video/[/\\S]+(?)");
         Matcher m = pattern.matcher(msg);
         while (m.find()) {
@@ -264,6 +278,11 @@ public class BilibiliListener {
                 URL url = new URL(group);
                 String path = url.getPath();
                 System.out.println(path.substring(path.lastIndexOf("/") + 1));
+                Map<String, String> queryMap = URLUtils.getQueryMap(url.getQuery());
+                System.out.println(queryMap.get("t"));
+                if (Objects.nonNull(queryMap.get("t"))) {
+                    System.out.println("?t=" + queryMap.get("t"));
+                }
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             }
