@@ -88,6 +88,25 @@ public class BotConfigListener {
         }
     }
 
+    @OnGroup
+    @Filter("/hbswitch")
+    public void hbswitch(GroupMsg groupMsg, Sender sender) {
+        String qq = groupMsg.getAccountInfo().getAccountCode();
+        if (!Objects.equals(qq, COMMON_CONFIG.getMasterQQ())) {
+            sender.sendGroupMsg(groupMsg, "你没有权限哦");
+        } else {
+            String groupCode = groupMsg.getGroupInfo().getGroupCode();
+            GroupPower groupPower = GROUP_CONFIG_MAP.get(groupCode);
+            groupPower.setMaiyaoSwitch(!groupPower.isMaiyaoSwitch());
+            setJson(GROUP_CONFIG_MAP);
+            if (groupPower.isMaiyaoSwitch()) {
+                sender.sendGroupMsg(groupMsg, "定时任务开启");
+            } else {
+                sender.sendGroupMsg(groupMsg, "定时任务关闭");
+            }
+        }
+    }
+
     @OnPrivate
     @Filter("/fresh")
     public void fresh(PrivateMsg privateMsg, Sender sender) throws IOException {
