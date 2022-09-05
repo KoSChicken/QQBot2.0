@@ -16,8 +16,6 @@ public class CommonConfig {
     private boolean gachaSwitch;
     //买药小助手提示
     private boolean maiyaoSwitch;
-    //赛马开关
-    private boolean horseSwitch;
     //骰子开关
     private boolean diceSwitch;
     //setu开关

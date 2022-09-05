@@ -4,8 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import io.koschicken.bean.CommonConfig;
 import io.koschicken.bean.GroupPower;
-import io.koschicken.bean.HorseEvent;
-import io.koschicken.constants.GameConstants;
 import io.koschicken.utils.SafeProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -14,7 +12,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 
 import static io.koschicken.constants.Constants.COMMON_CONFIG;
@@ -32,7 +29,6 @@ public class InitConfig {
     public static void initConfigs() {
         getFile();//群组配置文件
         getConfig();//通用设置
-        getEvent();//马事件
         getGachaConfig();//扭蛋
     }
 
@@ -82,7 +78,6 @@ public class InitConfig {
             COMMON_CONFIG.setGlobalSwitch(false);
             COMMON_CONFIG.setGachaSwitch(false);
             COMMON_CONFIG.setMaiyaoSwitch(false);
-            COMMON_CONFIG.setHorseSwitch(false);
             COMMON_CONFIG.setDiceSwitch(false);
             COMMON_CONFIG.setSetuSwitch(false);
             COMMON_CONFIG.setLotterySwitch(false);
@@ -157,7 +152,6 @@ public class InitConfig {
         commonConfig.setGlobalSwitch(Boolean.parseBoolean(pro.getProperty("总开关默认关闭")));
         commonConfig.setGachaSwitch(Boolean.parseBoolean(pro.getProperty("抽卡默认关闭")));
         commonConfig.setMaiyaoSwitch(Boolean.parseBoolean(pro.getProperty("买药提醒默认关闭")));
-        commonConfig.setHorseSwitch(Boolean.parseBoolean(pro.getProperty("赛马默认关闭")));
         commonConfig.setDiceSwitch(Boolean.parseBoolean(pro.getProperty("骰子默认关闭")));
         commonConfig.setLotterySwitch(Boolean.parseBoolean(pro.getProperty("彩票默认关闭")));
         commonConfig.setSetuSwitch(Boolean.parseBoolean(pro.getProperty("色图默认关闭")));
@@ -171,29 +165,6 @@ public class InitConfig {
         commonConfig.setSetuBlackTags(pro.getProperty("setuBlackTags"));
         in.close();
         return commonConfig;
-    }
-
-    //读好坏事
-    @SuppressWarnings("unchecked")
-    public static synchronized void getEvent() {
-        GameConstants.HORSE_EVENT = new HorseEvent();
-        String jsonObject = JSON.toJSONString(GameConstants.HORSE_EVENT);
-        try {
-            File file = new File(CONFIG_DIR + "/事件.json");
-            if (!file.exists() || !file.isFile()) {
-                if (file.createNewFile()) {
-                    FileUtils.write(file, jsonObject, "utf-8");
-                }
-            } else {
-                JSONObject jsonObject1 = JSON.parseObject(FileUtils.readFileToString(file, StandardCharsets.UTF_8));
-                List<String> bedHorseEvent = JSON.parseObject(jsonObject1.get("badHorseEvent").toString(), List.class);
-                List<String> goodHorseEvent = JSON.parseObject(jsonObject1.get("goodHorseEvent").toString(), List.class);
-                GameConstants.HORSE_EVENT.getGoodHorseEvent().addAll(goodHorseEvent);
-                GameConstants.HORSE_EVENT.getBadHorseEvent().addAll(bedHorseEvent);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     //读扭蛋信息
