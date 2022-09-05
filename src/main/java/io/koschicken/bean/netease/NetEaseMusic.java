@@ -12,8 +12,8 @@ import java.util.List;
 @Data
 public class NetEaseMusic {
 
-    final private static String UserAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36 SE 2.X MetaSr 1.0";
-    final private static String FAKE_CN_IP = "117.101.211.125";
+    private final static String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36 SE 2.X MetaSr 1.0";
+    private final static String FAKE_CN_IP = "117.101.211.125";
 
     private Integer id;
     private String name;
@@ -40,7 +40,7 @@ public class NetEaseMusic {
         headers.put("accept-language", "zh-CN,zh;q=0.8");
         headers.put("X-Real-IP", FAKE_CN_IP);
         headers.put("X-Forwarded-For", FAKE_CN_IP);
-        headers.put("user-agent", UserAgent);
+        headers.put("user-agent", USER_AGENT);
         JSONObject obj = new JSONObject();
         obj.put("s", keyWord);
         obj.put("offset", pn - 1);
