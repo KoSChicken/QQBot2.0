@@ -75,7 +75,6 @@ public class BotIntercept implements MsgInterceptor {
         groupPower.setGlobalSwitch(Constants.COMMON_CONFIG.isGlobalSwitch());
         groupPower.setMaiyaoSwitch(Constants.COMMON_CONFIG.isMaiyaoSwitch());
         groupPower.setGachaSwitch(Constants.COMMON_CONFIG.isGachaSwitch());
-        groupPower.setHorseSwitch(Constants.COMMON_CONFIG.isHorseSwitch());
         groupPower.setHorseSwitch(Constants.COMMON_CONFIG.isDiceSwitch());
         groupPower.setHorseSwitch(Constants.COMMON_CONFIG.isSetuSwitch());
         GROUP_CONFIG_MAP.put(groupCode, groupPower);
