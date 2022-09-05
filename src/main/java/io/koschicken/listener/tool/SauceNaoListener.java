@@ -70,7 +70,7 @@ public class SauceNaoListener {
             List<Result> results = sauce.getResults();
             if (!CollectionUtils.isEmpty(results)) {
                 ArrayList<MessageContent> msgList = new ArrayList<>();
-                results.subList(0, Math.min(3, results.size() - 1)).forEach(result -> msgList.add(buildMessage(result)));
+                results.subList(0, Math.min(2, results.size() - 1)).forEach(result -> msgList.add(buildMessage(result)));
                 MiraiMessageContentBuilder messageContentBuilder = factory.getMessageContentBuilder();
                 messageContentBuilder.forwardMessage(forwardBuilder -> {
                     for (MessageContent messageContent : msgList) {

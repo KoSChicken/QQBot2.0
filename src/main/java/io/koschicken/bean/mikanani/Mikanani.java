@@ -6,6 +6,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,7 +32,9 @@ public class Mikanani {
         List<Mikanani> list = new ArrayList<>();
         groupIds.forEach(id -> {
             try {
-                list.add(search(keyword, id));
+                if (StringUtils.hasText(id)) {
+                    list.add(search(keyword, id));
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
