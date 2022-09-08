@@ -18,8 +18,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class Application {
     public static void main(String[] args) {
-//        InitDatabase initDatabase = new InitDatabase();
-//        initDatabase.initDB();
         ExternalProperties externalProperties = new ExternalProperties();
         externalProperties.init();
         InitConfig.initConfigs();
