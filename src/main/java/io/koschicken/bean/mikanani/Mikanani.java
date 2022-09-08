@@ -16,6 +16,8 @@ import java.util.List;
 public class Mikanani {
 
     private final static String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36 SE 2.X MetaSr 1.0";
+    private final static int MAX = 5;
+    private final static int MAX_EP = 5;
 
     private String name;
     private List<Magnet> mags;
@@ -30,7 +32,8 @@ public class Mikanani {
             groupIds.add(groupId);
         });
         List<Mikanani> list = new ArrayList<>();
-        groupIds.forEach(id -> {
+        for (int i = 0; i < Math.min(MAX, groupIds.size()); i++) {
+            String id = groupIds.get(i);
             try {
                 if (StringUtils.hasText(id)) {
                     list.add(search(keyword, id));
@@ -38,7 +41,7 @@ public class Mikanani {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        });
+        }
         return list;
     }
 
@@ -48,7 +51,8 @@ public class Mikanani {
         Document document = Jsoup.connect(MikananiURL.BASE_URL + MikananiURL.SEARCH_URL + keyword + "&subgroupid=" + subGroupId).get();
         Elements items = document.select(".js-search-results-row");
         List<Magnet> mags = new ArrayList<>();
-        items.forEach(i -> {
+        for (int j = 0; j < Math.min(MAX_EP, items.size()); j++) {
+            Element i = items.get(j);
             Elements children = i.children();
             Magnet magnet = new Magnet();
             String name = children.get(0).text();
@@ -57,7 +61,7 @@ public class Mikanani {
             magnet.setReleaseTime(children.get(2).text());
             magnet.setMag(children.get(0).select(".js-magnet.magnet-link").attr("data-clipboard-text"));
             mags.add(magnet);
-        });
+        }
         mikanani.setMags(mags);
         return mikanani;
     }

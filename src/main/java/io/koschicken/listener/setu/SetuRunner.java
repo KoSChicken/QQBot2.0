@@ -1,7 +1,6 @@
 package io.koschicken.listener.setu;
 
 import catcode.CatCodeUtil;
-import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import io.koschicken.bean.setu.LoliconResponse;
 import io.koschicken.bean.setu.Pixiv;
 import lombok.Data;
@@ -21,6 +20,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.fluent.Request;
+import org.springframework.util.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -214,7 +214,7 @@ public class SetuRunner implements Callable<LoliconResponse> {
             return msgList;
         }
         if (StringUtils.isEmpty(error)) {
-            if (CollectionUtils.isNotEmpty(data)) {
+            if (!CollectionUtils.isEmpty(data)) {
                 data.parallelStream().forEach(p -> msgList.add(buildMessage(p)));
                 List<MessageContent> errors = msgList.stream().filter(m -> m.getMsg().toLowerCase().contains("exception")).collect(Collectors.toList());
                 msgList.removeAll(errors);

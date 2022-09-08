@@ -17,9 +17,9 @@ import java.util.Objects;
 public class NetEaseListener {
 
     @OnGroup
-    @Filter(value = "/wyy", matchType = MatchType.STARTS_WITH)
+    @Filter(value = "点歌", matchType = MatchType.STARTS_WITH)
     public void netEaseMusic(GroupMsg groupMsg, MsgSender sender) throws Exception {
-        String keyword = groupMsg.getMsgContent().getMsg().replace("/wyy", "").trim();
+        String keyword = groupMsg.getMsgContent().getMsg().replaceFirst("点歌", "").trim();
         NetEaseMusic netEaseMusic = NetEaseMusic.searchWithoutLink(keyword, 1, 1);
         if (Objects.nonNull(netEaseMusic)) {
             CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();

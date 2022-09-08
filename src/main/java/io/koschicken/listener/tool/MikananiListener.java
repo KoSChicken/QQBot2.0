@@ -13,7 +13,6 @@ import love.forte.simbot.component.mirai.message.MiraiMessageContent;
 import love.forte.simbot.component.mirai.message.MiraiMessageContentBuilder;
 import love.forte.simbot.component.mirai.message.MiraiMessageContentBuilderFactory;
 import love.forte.simbot.filter.MatchType;
-import org.apache.commons.lang3.RandomUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -37,18 +36,27 @@ public class MikananiListener {
         List<Mikanani> mikananiList = Mikanani.search(keyword);
         if (!CollectionUtils.isEmpty(mikananiList)) {
             MiraiMessageContentBuilder messageContentBuilder = factory.getMessageContentBuilder();
+            List<MessageContent> parentList = new ArrayList<>();
             for (Mikanani mikanani : mikananiList) {
-                ArrayList<MessageContent> msgList = new ArrayList<>();
+                List<MessageContent> msgList = new ArrayList<>();
                 List<Magnet> mags = mikanani.getMags();
-                mags.subList(0, Math.min(3, mags.size() - 1)).forEach(mag -> msgList.add(buildMessage(mag)));
+                mags.forEach(mag -> msgList.add(buildMessage(mag)));
                 messageContentBuilder.forwardMessage(forwardBuilder -> {
+                    GroupMemberInfo groupMemberInfo = randomGroupMember(groupMsg, sender);
                     for (MessageContent messageContent : msgList) {
-                        forwardBuilder.add(RandomUtils.nextBoolean() ? groupMsg.getAccountInfo() : randomGroupMember(groupMsg, sender), messageContent);
+                        forwardBuilder.add(groupMemberInfo, messageContent);
                     }
                 });
                 final MiraiMessageContent messageContent = messageContentBuilder.build();
-                sender.SENDER.sendGroupMsg(groupMsg, messageContent);
+                parentList.add(messageContent);
             }
+            messageContentBuilder.forwardMessage(forwardBuilder -> {
+                GroupMemberInfo groupMemberInfo = randomGroupMember(groupMsg, sender);
+                for (MessageContent messageContent : parentList) {
+                    forwardBuilder.add(groupMemberInfo, messageContent);
+                }
+            });
+            sender.SENDER.sendGroupMsg(groupMsg, messageContentBuilder.build());
         } else {
             sender.SENDER.sendGroupMsg(groupMsg, "冇");
         }
@@ -64,9 +72,9 @@ public class MikananiListener {
     private MessageContent buildMessage(Magnet magnet) {
         MiraiMessageContentBuilder messageContentBuilder = factory.getMessageContentBuilder();
         StringBuilder message = new StringBuilder();
-        message.append("番组名：").append(magnet.getName()).append("\n")
+        message.append("番组：").append(magnet.getName()).append("\n")
                 .append("大小：").append(magnet.getSize()).append("\n")
-                .append("更新时间：").append(magnet.getReleaseTime()).append("\n")
+                .append("时间：").append(magnet.getReleaseTime()).append("\n")
                 .append("磁链：").append(magnet.getShortMag()).append("\n");
         return messageContentBuilder.text(message).build();
     }
