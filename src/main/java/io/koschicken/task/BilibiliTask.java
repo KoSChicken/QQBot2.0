@@ -12,8 +12,6 @@ import love.forte.simbot.api.message.events.GroupMsg;
 import love.forte.simbot.api.sender.BotSender;
 import love.forte.simbot.api.sender.Sender;
 import love.forte.simbot.bot.BotManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -30,7 +28,6 @@ import static io.koschicken.intercept.BotIntercept.GROUP_CONFIG_MAP;
 @Component
 @EnableScheduling
 public class BilibiliTask {
-    private static final Logger LOGGER = LoggerFactory.getLogger(BilibiliTask.class);
     private static final HashMap<String, Space> LIVE_MAP = new HashMap<>();
     private static final HashMap<String, Space> NOTICED = new HashMap<>();
 
@@ -46,7 +43,7 @@ public class BilibiliTask {
             if (following.isNotification()) {
                 String uid = following.getUid();
                 Space space = LIVE_MAP.get(uid);
-                if (Objects.nonNull(space)) {
+                if (Objects.nonNull(space) && Objects.nonNull(space.getLiveRoom())) {
                     int liveStatus = space.getLiveRoom().getLiveStatus();
                     // 直播状态为直播中，且没有提醒过
                     if (liveStatus == 1 && !NOTICED.containsKey(uid)) {
