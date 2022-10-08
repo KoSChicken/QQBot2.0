@@ -1,6 +1,7 @@
 package io.koschicken.listener;
 
 import catcode.CatCodeUtil;
+import io.koschicken.utils.URLUtils;
 import lombok.extern.slf4j.Slf4j;
 import love.forte.common.ioc.annotation.Beans;
 import love.forte.simbot.annotation.Filter;
@@ -15,6 +16,11 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Objects;
+
+import static io.koschicken.intercept.BotIntercept.GROUP_CONFIG_MAP;
 
 /**
  * 群消息监听的示例类。
@@ -59,6 +65,26 @@ public class GroupListener {
         String api = "http://81.70.100.130/api/Ridicule.php?msg=";
         String string = Request.Get(api + RandomUtils.nextInt(1,6)).execute().returnContent().asString();
         sender.sendGroupMsg(groupMsg, string);
+    }
+
+    @OnGroup
+    public void pageDescription(GroupMsg groupMsg, Sender sender) {
+        String msg = groupMsg.getMsg();
+        try {
+            new URL(msg); // Test msg is url or not
+            String description = URLUtils.pageDescription(msg);
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append(msg).append("\n").append(description);
+            if (stringBuilder.length() > 0) {
+                String groupCode = groupMsg.getGroupInfo().getGroupCode();
+                if (Objects.nonNull(GROUP_CONFIG_MAP.get(groupCode)) && GROUP_CONFIG_MAP.get(groupCode).isGlobalSwitch()) {
+                    sender.sendGroupMsg(groupCode, stringBuilder.toString());
+                }
+            }
+        } catch (MalformedURLException ignore) {
+        } catch (IOException e) {
+            log.error("获取网页简介失败");
+        }
     }
 
     /**
