@@ -71,7 +71,10 @@ public class GroupListener {
     public void pageDescription(GroupMsg groupMsg, Sender sender) {
         String msg = groupMsg.getMsg();
         try {
-            new URL(msg); // Test msg is url or not
+            URL url = new URL(msg);// Test msg is url or not
+            if (url.getHost().contains("bilibili")) {
+                return; // pass bilibili
+            }
             String description = URLUtils.pageDescription(msg);
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append(msg).append("\n").append(description);

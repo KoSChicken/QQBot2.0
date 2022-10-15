@@ -15,7 +15,6 @@ import love.forte.simbot.api.sender.MsgSender;
 import love.forte.simbot.component.mirai.message.MiraiMessageContent;
 import love.forte.simbot.component.mirai.message.MiraiMessageContentBuilder;
 import love.forte.simbot.component.mirai.message.MiraiMessageContentBuilderFactory;
-import net.coobird.thumbnailator.Thumbnails;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -216,30 +215,32 @@ public class SetuRunner implements Callable<LoliconResponse> {
         if (StringUtils.isEmpty(error)) {
             if (!CollectionUtils.isEmpty(data)) {
                 data.parallelStream().forEach(p -> msgList.add(buildMessage(p)));
-                List<MessageContent> errors = msgList.stream().filter(m -> m.getMsg().toLowerCase().contains("exception")).collect(Collectors.toList());
+                List<MessageContent> errors = msgList.stream().filter(m ->
+                        Objects.isNull(m) || m.getMsg().toLowerCase().contains("exception"))
+                        .collect(Collectors.toList());
                 msgList.removeAll(errors);
                 if (CollectionUtils.isEmpty(msgList)) {
-                    File image = new File("./resource/image/zmsn.jpg");
-                    if (image.exists()) {
-                        msgList.add(messageContentBuilder.image(image.getAbsolutePath()).build());
-                    } else {
-                        msgList.add(messageContentBuilder.text("炸了").build());
-                    }
+                    buildMsgFailed("./resource/image/zmsn.jpg", msgList, messageContentBuilder, "炸了");
                 }
                 log.info("{} error(s), {} content(s)", errors.size(), msgList.size());
                 return msgList;
             } else {
-                File image = new File("./resource/image/mao.jpg");
-                if (image.exists()) {
-                    msgList.add(messageContentBuilder.image(image.getAbsolutePath()).build());
-                } else {
-                    msgList.add(messageContentBuilder.text("冇").build());
-                }
+                buildMsgFailed("./resource/image/mao.jpg", msgList, messageContentBuilder, "冇");
             }
         } else {
             msgList.add(messageContentBuilder.text(error).build());
         }
         return msgList;
+    }
+
+    private static void buildMsgFailed(String pathname, List<MessageContent> msgList,
+                                       MiraiMessageContentBuilder messageContentBuilder, String msgContent) {
+        File image = new File(pathname);
+        if (image.exists()) {
+            msgList.add(messageContentBuilder.image(image.getAbsolutePath()).build());
+        } else {
+            msgList.add(messageContentBuilder.text(msgContent).build());
+        }
     }
 
     public MessageContent buildMessage(Pixiv p) {
@@ -250,20 +251,20 @@ public class SetuRunner implements Callable<LoliconResponse> {
             if (!originalFile.exists()) {
                 FileUtils.copyURLToFile(new URL(p.getUrls().get("original")), originalFile);
             }
-            log.info("原图创建完成，pid={}, file={}", pid, originalFile.getName());
-            File compressedJPG = new File(SETU_COMP_DIR + pid + ".jpg");
-            Thumbnails.of(originalFile).scale(1).outputQuality(1).toFile(compressedJPG);
-            String message = "\n" +
-                    p.getTitle() + "\n" +
-                    ARTWORK_PREFIX + p.getPid() + "\n" +
-                    p.getAuthor() + "\n" +
-                    ARTIST_PREFIX + p.getUid() + "\n";
-            // + "tags:" + Arrays.toString(p.getTags());
-            return messageContentBuilder.image(compressedJPG.getAbsolutePath()).text(message).build();
+            if (originalFile.length() > 0) {
+                log.info("原图创建完成，pid={}, file={}", pid, originalFile.getName());
+                String message = "\n" +
+                        p.getTitle() + "\n" +
+                        ARTWORK_PREFIX + p.getPid() + "\n" +
+                        p.getAuthor() + "\n" +
+                        ARTIST_PREFIX + p.getUid() + "\n";
+                return messageContentBuilder.image(originalFile.getAbsolutePath()).text(message).build();
+            }
         } catch (IOException e) {
             e.printStackTrace();
             return messageContentBuilder.text("[error]" + e.getClass().getName()).build();
         }
+        return null;
     }
 
     private boolean groupMember(GroupMsg msg, MsgSender sender, String tag) {
