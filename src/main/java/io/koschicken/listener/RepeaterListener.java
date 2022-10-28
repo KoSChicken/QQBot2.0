@@ -29,7 +29,7 @@ public class RepeaterListener {
         }
         Msg currentMsg;
         // 如果没有猫猫码，说明是纯文本消息
-        if (cats.size() == 0) {
+        if (cats.isEmpty()) {
             currentMsg = new Msg();
             currentMsg.setContent(msg.getText());
         } else {

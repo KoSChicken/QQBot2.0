@@ -1,6 +1,8 @@
 package io.koschicken.listener;
 
 import catcode.CatCodeUtil;
+import catcode.Neko;
+import lombok.extern.slf4j.Slf4j;
 import love.forte.common.ioc.annotation.Beans;
 import love.forte.simbot.annotation.Filter;
 import love.forte.simbot.annotation.OnPrivate;
@@ -9,10 +11,18 @@ import love.forte.simbot.api.message.MessageContentBuilder;
 import love.forte.simbot.api.message.MessageContentBuilderFactory;
 import love.forte.simbot.api.message.events.PrivateMsg;
 import love.forte.simbot.api.sender.Sender;
+import love.forte.simbot.component.mirai.message.MiraiMessageContent;
+import love.forte.simbot.component.mirai.message.MiraiMessageContentBuilder;
+import love.forte.simbot.component.mirai.message.MiraiMessageContentBuilderFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 私聊消息监听的示例类。
@@ -29,17 +39,55 @@ import java.io.File;
  *
  * @author ForteScarlet
  */
+@Slf4j
 @Service
 public class PrivateListener {
+
+    private static final ConcurrentHashMap<String, List<MessageContent>> MSG_MAP = new ConcurrentHashMap<>();
 
     /**
      * 通过依赖注入获取一个 "消息正文构建器工厂"。
      */
     private final MessageContentBuilderFactory messageContentBuilderFactory;
+    private final MiraiMessageContentBuilderFactory factory;
 
     @Autowired
-    public PrivateListener(MessageContentBuilderFactory messageContentBuilderFactory) {
+    public PrivateListener(MessageContentBuilderFactory messageContentBuilderFactory, MiraiMessageContentBuilderFactory factory) {
         this.messageContentBuilderFactory = messageContentBuilderFactory;
+        this.factory = factory;
+    }
+
+    @OnPrivate
+    public void cache(PrivateMsg privateMsg) {
+        if (StringUtils.hasText(privateMsg.getMsgContent().getMsg()) && privateMsg.getMsgContent().getMsg().contains("合并")) {
+            return;
+        }
+        log.info("msg cats: {}", privateMsg.getMsgContent().getCats());
+        String accountCode = privateMsg.getAccountInfo().getAccountCode();
+        List<MessageContent> list = MSG_MAP.get(accountCode);
+        if (list == null) {
+            list = new ArrayList<>();
+        }
+        List<MessageContent> messageContents = listContent(privateMsg);
+        list.addAll(messageContents);
+        MSG_MAP.put(accountCode, list);
+        log.info("list {}, size: {}", accountCode, list.size());
+    }
+
+    @OnPrivate
+    @Filter("合并")
+    public void comp(PrivateMsg privateMsg, Sender sender) {
+        String accountCode = privateMsg.getAccountInfo().getAccountCode();
+        List<MessageContent> list = MSG_MAP.get(accountCode);
+        MiraiMessageContentBuilder messageContentBuilder = factory.getMessageContentBuilder();
+        messageContentBuilder.forwardMessage(forwardBuilder -> {
+            for (MessageContent msg : list) {
+                forwardBuilder.add(privateMsg.getAccountInfo(), msg);
+            }
+        });
+        final MiraiMessageContent messageContent = messageContentBuilder.build();
+        sender.sendPrivateMsg(privateMsg, messageContent);
+        MSG_MAP.remove(accountCode);
     }
 
     @OnPrivate
@@ -51,6 +99,27 @@ public class PrivateListener {
             String cat = catCodeUtil.getStringTemplate().image(image.getAbsolutePath());
             sender.sendPrivateMsg(privateMsg, cat);
         }
+    }
+
+    private List<MessageContent> listContent(PrivateMsg msg) {
+        List<Neko> cats = msg.getMsgContent().getCats();
+        List<MessageContent> list = new ArrayList<>();
+        for (Neko cat : cats) {
+            MessageContent messageContent;
+            String type = cat.getType();
+            if ("image".equals(type)) {
+                messageContent = factory.getMessageContentBuilder().image(cat.get("url")).build();
+            } else if ("text".equals(type)) {
+                messageContent = factory.getMessageContentBuilder().text(cat.get("text")).build();
+            } else {
+                messageContent = null;
+            }
+            if (Objects.nonNull(messageContent)) {
+                list.add(messageContent);
+            }
+        }
+        log.info("list: {}", list);
+        return list;
     }
 
     /**
