@@ -38,7 +38,7 @@ public class BilibiliTask {
     public void liveNotice() {
         BilibiliUtils.bilibiliJSON();
         Set<Following> allFollowing = fetchLive();
-        // LOGGER.info("当前监听的直播间：\n{}", GROUP_BILIBILI_MAP.isEmpty() ? "无" : printMap());
+//       log.info("当前监听的直播间：\n{}", GROUP_BILIBILI_MAP.isEmpty() ? "无" : printMap());
         for (Following following : allFollowing) {
             if (following.isNotification()) {
                 String uid = following.getUid();

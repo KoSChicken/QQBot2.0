@@ -30,7 +30,6 @@ public class BiliUser {
     private String uname;
     private String usign;
     private Integer fans;
-    private Integer videos;
     private String upic;
     private File upicFile;
 
@@ -39,8 +38,7 @@ public class BiliUser {
         this.uname = uname;
         this.usign = usign;
         this.fans = fans;
-        this.videos = videos;
-        String fullUpic = upic.startsWith("http") ? upic.replace("http:", "https:") : "https://" + upic;
+        String fullUpic = upic.startsWith("http") ? upic.replace("http:", "https:") : "https:" + upic;
         this.upic = fullUpic;
         URL url = new URL(fullUpic);
         String imageName = BilibiliUtils.getImageName(url);
