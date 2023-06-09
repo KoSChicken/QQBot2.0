@@ -13,4 +13,24 @@
         <maven.compiler.target>11</maven.compiler.target>
     </properties>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+            <version>2.7.5</version>
+        </dependency>
+        <!-- simboot-core-spring-boot-starter -->
+        <dependency>
+            <groupId>love.forte.simbot.boot</groupId>
+            <artifactId>simboot-core-spring-boot-starter</artifactId>
+            <!-- 版本参考下文所述的 Releases -->
+            <version>3.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>love.forte.simbot.component</groupId>
+            <artifactId>simbot-component-mirai-core</artifactId>
+            <version>3.0.0.0-RC.2</version>
+        </dependency>
+    </dependencies>
+
 </project>
