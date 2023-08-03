@@ -185,3 +185,6 @@ modules.xml
 
 # End of https://www.toptal.com/developers/gitignore/api/java,jetbrains+iml,eclipse
 /device.json
+/android_pad.json
+/dependency-reduced-pom.xml
+/KFCFactory.json

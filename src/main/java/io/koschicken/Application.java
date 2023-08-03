@@ -2,9 +2,11 @@ package io.koschicken;
 
 import io.koschicken.config.ExternalProperties;
 import love.forte.simbot.spring.autoconfigure.EnableSimbot;
+import net.mamoe.mirai.utils.BotConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import xyz.cssxsh.mirai.tool.FixProtocolVersion;
 
 /**
  * 启动类。
@@ -21,6 +23,8 @@ public class Application {
         ExternalProperties externalProperties = new ExternalProperties();
         externalProperties.init();
         InitConfig.initConfigs();
+        FixProtocolVersion.fetch(BotConfiguration.MiraiProtocol.ANDROID_PAD, "latest");
+        FixProtocolVersion.load(BotConfiguration.MiraiProtocol.ANDROID_PAD);
         SpringApplication.run(Application.class, args);
     }
 }
