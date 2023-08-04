@@ -54,12 +54,6 @@ public class GroupListener {
     }
 
     @OnGroup
-    @Filter("贵族叫车")
-    public void callAnotherBot(GroupMsg groupMsg, Sender sender) {
-        sender.sendGroupMsg(groupMsg, "/hso");
-    }
-
-    @OnGroup
     @Filter(atBot = true)
     public void zuichou(GroupMsg groupMsg, Sender sender) throws IOException {
         String api = "http://81.70.100.130/api/Ridicule.php?msg=";
@@ -78,7 +72,7 @@ public class GroupListener {
             String description = URLUtils.pageDescription(msg);
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append(msg).append("\n").append(description);
-            if (stringBuilder.length() > 0) {
+            if (!stringBuilder.isEmpty()) {
                 String groupCode = groupMsg.getGroupInfo().getGroupCode();
                 if (Objects.nonNull(GROUP_CONFIG_MAP.get(groupCode)) && GROUP_CONFIG_MAP.get(groupCode).isGlobalSwitch()) {
                     sender.sendGroupMsg(groupCode, stringBuilder.toString());

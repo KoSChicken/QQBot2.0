@@ -19,6 +19,7 @@ import love.forte.simbot.api.sender.Sender;
 import love.forte.simbot.component.mirai.message.MiraiMessageContentBuilder;
 import love.forte.simbot.filter.MatchType;
 import org.apache.commons.io.FileUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -98,6 +99,13 @@ public class BilibiliListener {
         if (CollectionUtils.isEmpty(followings)) {
             sender.sendGroupMsg(groupMsg, "本群没有关注任何直播间");
         }
+        MiraiMessageContentBuilder messageContentBuilder = getMiraiMessageContentBuilder(groupMsg, followings);
+        MessageContent messageContent = messageContentBuilder.build();
+        sender.sendGroupMsg(groupMsg, messageContent);
+    }
+
+    @NotNull
+    private MiraiMessageContentBuilder getMiraiMessageContentBuilder(GroupMsg groupMsg, List<Following> followings) {
         List<List<Following>> partition = Lists.partition(followings, 10);
         MiraiMessageContentBuilder messageContentBuilder = (MiraiMessageContentBuilder) factory.getMessageContentBuilder();
         messageContentBuilder.forwardMessage(forwardBuilder -> {
@@ -108,8 +116,7 @@ public class BilibiliListener {
                 forwardBuilder.add(groupMsg.getAccountInfo(), stringBuilder.toString());
             });
         });
-        MessageContent messageContent = messageContentBuilder.build();
-        sender.sendGroupMsg(groupMsg, messageContent);
+        return messageContentBuilder;
     }
 
     @OnGroup
@@ -124,14 +131,15 @@ public class BilibiliListener {
                 String group = m.group();
                 URL url = new URL(group);
                 String t = getTimestamp(url);
-                String bv = url.getPath().substring(url.getPath().lastIndexOf("/") + 1);
+                String path = url.getPath().endsWith("/") ? url.getPath().substring(0, url.getPath().lastIndexOf("/")) : url.getPath();
+                String bv = path.substring(path.lastIndexOf("/") + 1);
                 Video video = bv.startsWith("BV") ? new Video(bv, true) : new Video(bv, false);
                 CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
                 StringBuilder stringBuilder = new StringBuilder();
                 stringBuilder.append(catCodeUtil.getStringTemplate().image(video.getPic().getAbsolutePath()))
                         .append("\nUP：").append(video.getOwner()).append("\n标题：").append(video.getTitle())
                         .append("\n链接：").append(baseUrl).append(video.getBv()).append(t);
-                if (stringBuilder.length() > 0) {
+                if (!stringBuilder.isEmpty()) {
                     String groupCode = groupMsg.getGroupInfo().getGroupCode();
                     if (Objects.nonNull(GROUP_CONFIG_MAP.get(groupCode)) && GROUP_CONFIG_MAP.get(groupCode).isGlobalSwitch()) {
                         sender.sendGroupMsg(groupCode, stringBuilder.toString());

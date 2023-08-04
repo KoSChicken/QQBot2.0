@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import io.koschicken.bean.GroupPower;
 import io.koschicken.bean.bilibili.Following;
 import io.koschicken.constants.Constants;
+import lombok.extern.slf4j.Slf4j;
 import love.forte.simbot.api.message.events.GroupMsg;
 import love.forte.simbot.api.message.events.MsgGet;
 import love.forte.simbot.intercept.InterceptionType;
@@ -22,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static io.koschicken.constants.Constants.CONFIG_DIR;
 
+@Slf4j
 @Service
 public class BotIntercept implements MsgInterceptor {
 
@@ -32,17 +34,17 @@ public class BotIntercept implements MsgInterceptor {
     @Override
     public InterceptionType intercept(@NotNull MsgInterceptContext context) {
         MsgGet msgGet = context.getMsgGet();
-        if (msgGet instanceof GroupMsg) {
-            String groupCode = ((GroupMsg) msgGet).getGroupInfo().getGroupCode();
-            String msg = ((GroupMsg) msgGet).getMsg();
+        if (msgGet instanceof GroupMsg groupMsg) {
+            String groupCode = groupMsg.getGroupInfo().getGroupCode();
+            String msg = groupMsg.getMsg();
             GroupPower groupPower = GROUP_CONFIG_MAP.get(groupCode);
             if (Objects.isNull(groupPower)) {
                 groupPower = initGroupPower(groupCode);
             }
             //总体开关
             if (!groupPower.isGlobalSwitch()) {
-                String masterQQ = Constants.COMMON_CONFIG.getMasterQQ();
-                String qq = ((GroupMsg) msgGet).getAccountInfo().getAccountCode();
+                String masterQQ = Constants.commonConfig.getMasterQQ();
+                String qq = groupMsg.getAccountInfo().getAccountCode();
                 if (isOpen(msg) && Objects.equals(masterQQ, qq)) return InterceptionType.ALLOW;
                 return InterceptionType.BLOCK;
             }
@@ -72,11 +74,11 @@ public class BotIntercept implements MsgInterceptor {
 
     private GroupPower initGroupPower(String groupCode) {
         GroupPower groupPower = new GroupPower();
-        groupPower.setGlobalSwitch(Constants.COMMON_CONFIG.isGlobalSwitch());
-        groupPower.setMaiyaoSwitch(Constants.COMMON_CONFIG.isMaiyaoSwitch());
-        groupPower.setGachaSwitch(Constants.COMMON_CONFIG.isGachaSwitch());
-        groupPower.setHorseSwitch(Constants.COMMON_CONFIG.isDiceSwitch());
-        groupPower.setHorseSwitch(Constants.COMMON_CONFIG.isSetuSwitch());
+        groupPower.setGlobalSwitch(Constants.commonConfig.isGlobalSwitch());
+        groupPower.setMaiyaoSwitch(Constants.commonConfig.isMaiyaoSwitch());
+        groupPower.setGachaSwitch(Constants.commonConfig.isGachaSwitch());
+        groupPower.setHorseSwitch(Constants.commonConfig.isDiceSwitch());
+        groupPower.setHorseSwitch(Constants.commonConfig.isSetuSwitch());
         GROUP_CONFIG_MAP.put(groupCode, groupPower);
         setJson(GROUP_CONFIG_MAP);
         return groupPower;
@@ -114,7 +116,7 @@ public class BotIntercept implements MsgInterceptor {
             }
             FileUtils.write(file, jsonObject, "utf-8");
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("群组配置创建异常：", e);
         }
     }
 }

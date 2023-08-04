@@ -11,13 +11,12 @@ public class GroupPower {
     private boolean setuSwitch;//涩图开关
     private boolean diceSwitch;//骰子开关
 
-    public GroupPower allSwitch(boolean b) {
+    public void allSwitch(boolean b) {
         setGlobalSwitch(b);
         setDiceSwitch(b);
         setGachaSwitch(b);
         setHorseSwitch(b);
         setMaiyaoSwitch(b);
         setSetuSwitch(b);
-        return this;
     }
 }

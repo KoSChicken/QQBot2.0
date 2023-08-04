@@ -12,8 +12,8 @@ import java.util.List;
 @Data
 public class NetEaseMusic {
 
-    private final static String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36 SE 2.X MetaSr 1.0";
-    private final static String FAKE_CN_IP = "117.101.211.125";
+    private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36 SE 2.X MetaSr 1.0";
+    private static final String FAKE_CN_IP = "117.101.211.125";
 
     private Integer id;
     private String name;

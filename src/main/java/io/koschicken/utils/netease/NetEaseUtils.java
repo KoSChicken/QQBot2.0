@@ -1,5 +1,6 @@
 package io.koschicken.utils.netease;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import io.koschicken.bean.netease.Album;
@@ -18,7 +19,7 @@ public class NetEaseUtils {
     }
 
     public static NetEaseMusic JSON2Song(String json) {
-        JSONObject jsonObject = JSONObject.parseObject(json);
+        JSONObject jsonObject = JSON.parseObject(json);
         Integer code = jsonObject.getInteger("code");
         if (code != 200) {
             return null;

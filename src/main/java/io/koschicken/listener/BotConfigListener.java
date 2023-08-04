@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 
-import static io.koschicken.constants.Constants.COMMON_CONFIG;
+import static io.koschicken.constants.Constants.commonConfig;
 import static io.koschicken.constants.Constants.CONFIG_DIR;
 import static io.koschicken.intercept.BotIntercept.GROUP_CONFIG_MAP;
 
@@ -37,7 +37,7 @@ public class BotConfigListener {
     @Filter("/on")
     public void enableBot(GroupMsg groupMsg, Sender sender) {
         String qq = groupMsg.getAccountInfo().getAccountCode();
-        if (!Objects.equals(qq, COMMON_CONFIG.getMasterQQ())) {
+        if (!Objects.equals(qq, commonConfig.getMasterQQ())) {
             sender.sendGroupMsg(groupMsg, "你没有权限哦");
         } else {
             String groupCode = groupMsg.getGroupInfo().getGroupCode();
@@ -55,7 +55,7 @@ public class BotConfigListener {
     @Filter("/off")
     public void disableBot(GroupMsg groupMsg, Sender sender) {
         String qq = groupMsg.getAccountInfo().getAccountCode();
-        if (!Objects.equals(qq, COMMON_CONFIG.getMasterQQ())) {
+        if (!Objects.equals(qq, commonConfig.getMasterQQ())) {
             sender.sendGroupMsg(groupMsg, "你没有权限哦");
         } else {
             String groupCode = groupMsg.getGroupInfo().getGroupCode();
@@ -73,7 +73,7 @@ public class BotConfigListener {
     @Filter("/st")
     public void setuSwitch(GroupMsg groupMsg, Sender sender) {
         String qq = groupMsg.getAccountInfo().getAccountCode();
-        if (!Objects.equals(qq, COMMON_CONFIG.getMasterQQ())) {
+        if (!Objects.equals(qq, commonConfig.getMasterQQ())) {
             sender.sendGroupMsg(groupMsg, "你没有权限哦");
         } else {
             String groupCode = groupMsg.getGroupInfo().getGroupCode();
@@ -92,7 +92,7 @@ public class BotConfigListener {
     @Filter("/hbswitch")
     public void hbswitch(GroupMsg groupMsg, Sender sender) {
         String qq = groupMsg.getAccountInfo().getAccountCode();
-        if (!Objects.equals(qq, COMMON_CONFIG.getMasterQQ())) {
+        if (!Objects.equals(qq, commonConfig.getMasterQQ())) {
             sender.sendGroupMsg(groupMsg, "你没有权限哦");
         } else {
             String groupCode = groupMsg.getGroupInfo().getGroupCode();
@@ -111,7 +111,7 @@ public class BotConfigListener {
     @Filter("/fresh")
     public void fresh(PrivateMsg privateMsg, Sender sender) throws IOException {
         String qq = privateMsg.getAccountInfo().getAccountCode();
-        if (!Objects.equals(qq, COMMON_CONFIG.getMasterQQ())) {
+        if (!Objects.equals(qq, commonConfig.getMasterQQ())) {
             sender.sendPrivateMsg(privateMsg, "你没有权限哦");
         } else {
             FileUtils.deleteDirectory(new File(CACHE_DIR));

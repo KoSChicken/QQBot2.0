@@ -1,20 +1,27 @@
 package io.koschicken.bean.bilibili.space;
 
+import cn.hutool.core.net.URLEncodeUtil;
+import cn.hutool.crypto.SecureUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import io.koschicken.utils.HttpUtils;
 import io.koschicken.utils.bilibili.BilibiliUtils;
+import io.koschicken.utils.bilibili.WbiUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.StringJoiner;
 
-import static io.koschicken.constants.Constants.COMMON_CONFIG;
+import static io.koschicken.constants.Constants.commonConfig;
 import static org.springframework.util.ResourceUtils.isUrl;
 
 @Slf4j
@@ -31,7 +38,7 @@ public class Space {
             try {
                 FileUtils.forceMkdir(liveFolder);
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("IOException: ", e);
             }
         }
     }
@@ -84,35 +91,18 @@ public class Space {
     private LiveRoom liveRoom;
 
     public static Space getSpace(String mid) throws IOException {
-        String url = "https://api.bilibili.com/x/space/acc/info?mid=" + mid;
+        String url = "https://api.bilibili.com/x/space/wbi/acc/info?mid=" + mid + "&token=&platform=web&" + generateWrid();
+        log.debug(url);
         if (next != null && LocalDateTime.now().isBefore(next)) {
             return null;
         }
-        String json = HttpUtils.get(url, COMMON_CONFIG.getBilibiliCookie());
+        String json = HttpUtils.get(url, commonConfig.getBilibiliCookie());
         JSONObject jsonObject = JSON.parseObject(json);
         Integer code = jsonObject.getInteger("code");
         if (code == 0) {
             String data = jsonObject.getString("data");
             if (data != null) {
-                Space space = JSON.parseObject(data, Space.class);
-                if (Objects.nonNull(space)) {
-                    LiveRoom liveRoom = space.getLiveRoom();
-                    if (Objects.nonNull(liveRoom)) {
-                        String coverUrl = liveRoom.getCover().replace("http:", "https:");
-                        boolean isUrl = isUrl(coverUrl);
-                        if (isUrl) {
-                            URL imageUrl = new URL(coverUrl);
-                            String fileName = BilibiliUtils.getImageName(imageUrl);
-                            File cover = new File(LIVE_TEMP_FOLDER + fileName);
-                            FileUtils.deleteQuietly(cover);
-                            FileUtils.touch(cover);
-                            FileUtils.copyURLToFile(imageUrl, cover);
-                            liveRoom.setCoverFile(cover);
-                            space.setLiveRoom(liveRoom);
-                        }
-                    }
-                }
-                return space;
+                return buildSpace(data);
             }
         } else {
             next = LocalDateTime.now().plusMinutes(15);
@@ -120,5 +110,57 @@ public class Space {
             log.error("获取用户信息失败，mid={}，message={}", mid, message);
         }
         return null;
+    }
+
+    private static String generateWrid() throws IOException {
+        JSONObject wbiImg = navWbiImg();
+        String imgUrl = wbiImg.getString("img_url");
+        String imgKey = imgUrl.substring(imgUrl.lastIndexOf("/") + 1);
+        String subUrl = wbiImg.getString("sub_url");
+        String subKey = subUrl.substring(subUrl.lastIndexOf("/") + 1);
+        String mixinKey = WbiUtils.getMixinKey(imgKey, subKey);
+        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
+        map.put("foo", "one one four");
+        map.put("bar", "五一四");
+        map.put("baz", 1919810);
+        map.put("wts", System.currentTimeMillis() / 1000);
+        StringJoiner param = new StringJoiner("&");
+        //排序 + 拼接字符串
+        map.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .forEach(entry -> param.add(entry.getKey() + "=" + URLEncodeUtil.encode(entry.getValue().toString())));
+        String s = param + mixinKey;
+        String wbiSign = SecureUtil.md5(s);
+        return param + "&w_rid=" + wbiSign;
+    }
+
+    private static JSONObject navWbiImg() throws IOException {
+        String url = "https://api.bilibili.com/x/web-interface/nav";
+        String json = HttpUtils.get(url, commonConfig.getBilibiliCookie());
+        JSONObject jsonObject = JSON.parseObject(json);
+        return jsonObject.getJSONObject("data").getJSONObject("wbi_img");
+    }
+
+    @Nullable
+    private static Space buildSpace(String data) throws IOException {
+        Space space = JSON.parseObject(data, Space.class);
+        if (Objects.nonNull(space)) {
+            LiveRoom liveRoom = space.getLiveRoom();
+            if (Objects.nonNull(liveRoom)) {
+                String coverUrl = liveRoom.getCover().replace("http:", "https:");
+                boolean isUrl = isUrl(coverUrl);
+                if (isUrl) {
+                    URL imageUrl = new URL(coverUrl);
+                    String fileName = BilibiliUtils.getImageName(imageUrl);
+                    File cover = new File(LIVE_TEMP_FOLDER + fileName);
+                    FileUtils.deleteQuietly(cover);
+                    FileUtils.touch(cover);
+                    FileUtils.copyURLToFile(imageUrl, cover);
+                    liveRoom.setCoverFile(cover);
+                    space.setLiveRoom(liveRoom);
+                }
+            }
+        }
+        return space;
     }
 }

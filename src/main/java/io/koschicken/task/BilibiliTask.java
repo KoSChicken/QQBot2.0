@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.*;
 
-import static io.koschicken.constants.Constants.COMMON_CONFIG;
+import static io.koschicken.constants.Constants.commonConfig;
 import static io.koschicken.intercept.BotIntercept.GROUP_BILIBILI_MAP;
 import static io.koschicken.intercept.BotIntercept.GROUP_CONFIG_MAP;
 
@@ -38,7 +38,7 @@ public class BilibiliTask {
     public void liveNotice() {
         BilibiliUtils.bilibiliJSON();
         Set<Following> allFollowing = fetchLive();
-//       log.info("当前监听的直播间：\n{}", GROUP_BILIBILI_MAP.isEmpty() ? "无" : printMap());
+        log.info("当前监听的直播间：\n{}", GROUP_BILIBILI_MAP.isEmpty() ? "无" : printMap());
         for (Following following : allFollowing) {
             if (following.isNotification()) {
                 String uid = following.getUid();
@@ -49,7 +49,7 @@ public class BilibiliTask {
                     if (liveStatus == 1 && !NOTICED.containsKey(uid)) {
                         NOTICED.putIfAbsent(uid, space); // 标记已提醒
                         notice(space);
-                    } else if (liveStatus != 1){
+                    } else if (liveStatus != 1) {
                         NOTICED.remove(uid); // 从已提醒中移除
                     }
                 }
@@ -60,7 +60,7 @@ public class BilibiliTask {
     @OnGroup
     @Filter(".bilibiliLive")
     public void bilibiliLive(GroupMsg groupMsg, Sender sender) {
-        if (Objects.equals(COMMON_CONFIG.getMasterQQ(), groupMsg.getAccountInfo().getAccountCode())) {
+        if (Objects.equals(commonConfig.getMasterQQ(), groupMsg.getAccountInfo().getAccountCode())) {
             liveNotice();
         }
     }
@@ -99,8 +99,7 @@ public class BilibiliTask {
                     LIVE_MAP.putIfAbsent(uid, space);
                 }
             } catch (IOException e) {
-                // log.error("获取B站用户信息失败，{}", e.getMessage());
-                e.printStackTrace();
+                log.error("获取B站用户信息失败", e);
             }
         });
         return followingSet;
@@ -125,7 +124,7 @@ public class BilibiliTask {
         stringBuilder.append("开播啦！").append(up).append(space.getName())
                 .append(title).append(liveRoom.getTitle()).append(url).append(liveRoom.getUrl()).append("\n")
                 .append(catCodeUtil.getStringTemplate().image(liveRoom.getCoverFile().getAbsolutePath()));
-        if (stringBuilder.length() > 0) {
+        if (!stringBuilder.isEmpty()) {
             Set<String> groups = groupCodeByFollowing(space.getMid());
             for (String groupCode : groups) {
                 if (Objects.nonNull(GROUP_CONFIG_MAP.get(groupCode)) && GROUP_CONFIG_MAP.get(groupCode).isGlobalSwitch()) {

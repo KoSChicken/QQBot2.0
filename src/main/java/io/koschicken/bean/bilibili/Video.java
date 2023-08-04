@@ -13,7 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
-import static io.koschicken.constants.Constants.COMMON_CONFIG;
+import static io.koschicken.constants.Constants.commonConfig;
 
 @Slf4j
 @Data
@@ -26,7 +26,7 @@ public class Video {
             try {
                 FileUtils.forceMkdir(videoFolder);
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("IOException: ", e);
             }
         }
     }
@@ -96,12 +96,12 @@ public class Video {
      */
     public static String getVideoByAV(String av) throws IOException {
         String url = "https://api.bilibili.com/x/web-interface/view?aid=" + av;
-        return HttpUtils.get(url, COMMON_CONFIG.getBilibiliCookie());
+        return HttpUtils.get(url, commonConfig.getBilibiliCookie());
     }
 
     public static String getVideoByBV(String bv) throws IOException {
         String url = "https://api.bilibili.com/x/web-interface/view?bvid=" + bv;
-        return HttpUtils.get(url, COMMON_CONFIG.getBilibiliCookie());
+        return HttpUtils.get(url, commonConfig.getBilibiliCookie());
     }
 
     public void fresh() throws IOException {

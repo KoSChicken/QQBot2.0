@@ -30,7 +30,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-import static io.koschicken.constants.Constants.COMMON_CONFIG;
+import static io.koschicken.constants.Constants.commonConfig;
 import static io.koschicken.intercept.BotIntercept.GROUP_CONFIG_MAP;
 
 @Slf4j
@@ -49,14 +49,14 @@ public class SetuListener {
     @OnPrivate
     @Filter(value = "^叫[车車](.*)(.*)?(|r18)$", matchType = MatchType.REGEX_MATCHES)
     public void driver1(MsgGet msg, MsgSender sender) {
-        if (msg instanceof GroupMsg && !isSetuOn(((GroupMsg) msg).getGroupInfo().getGroupCode())) {
+        if (msg instanceof GroupMsg groupMsg && !isSetuOn(groupMsg.getGroupInfo().getGroupCode())) {
             return;
         }
         String qq = msg.getAccountInfo().getAccountCode();
         int i = RandomUtils.nextInt(1, 100);
-        if (i <= 10 && !Objects.equals(qq, COMMON_CONFIG.getMasterQQ())) {
-            if (msg instanceof GroupMsg) {
-                sender.SENDER.sendGroupMsg((GroupMsg) msg, "歇会");
+        if (i <= 10 && !Objects.equals(qq, commonConfig.getMasterQQ())) {
+            if (msg instanceof GroupMsg groupMsg) {
+                sender.SENDER.sendGroupMsg(groupMsg, "歇会");
             } else {
                 sender.SENDER.sendPrivateMsg(msg, "歇会");
             }
@@ -70,14 +70,14 @@ public class SetuListener {
     @OnPrivate
     @Filter(value = "^[来來](.*?)[点點丶份张張](.*?)的?(|r18)[色瑟涩][图圖]$", matchType = MatchType.REGEX_MATCHES)
     public void driver2(MsgGet msg, MsgSender sender) {
-        if (msg instanceof GroupMsg && !isSetuOn(((GroupMsg) msg).getGroupInfo().getGroupCode())) {
+        if (msg instanceof GroupMsg groupMsg && !isSetuOn(groupMsg.getGroupInfo().getGroupCode())) {
             return;
         }
         String qq = msg.getAccountInfo().getAccountCode();
         int i = RandomUtils.nextInt(1, 100);
-        if (i <= 50 && !Objects.equals(qq, COMMON_CONFIG.getMasterQQ())) {
-            if (msg instanceof GroupMsg) {
-                sender.SENDER.sendGroupMsg((GroupMsg) msg, "来nm");
+        if (i <= 50 && !Objects.equals(qq, commonConfig.getMasterQQ())) {
+            if (msg instanceof GroupMsg groupMsg) {
+                sender.SENDER.sendGroupMsg(groupMsg, "来nm");
             } else {
                 sender.SENDER.sendPrivateMsg(msg, "\uD83D\uDD95");
             }
@@ -91,13 +91,13 @@ public class SetuListener {
     public void callPic(MsgGet msg, MsgSender sender) {
         File call = new File("./resource/image/call.jpg");
         List<Neko> cats;
-        if (msg instanceof GroupMsg) {
-            cats = ((GroupMsg) msg).getMsgContent().getCats();
+        if (msg instanceof GroupMsg groupMsg) {
+            cats = groupMsg.getMsgContent().getCats();
         } else {
             cats = ((PrivateMsg) msg).getMsgContent().getCats();
         }
 
-        List<Neko> imageNekoList = cats.stream().filter(cat -> "image".equals(cat.getType())).collect(Collectors.toList());
+        List<Neko> imageNekoList = cats.stream().filter(cat -> "image".equals(cat.getType())).toList();
         imageNekoList.forEach(neko -> {
             String url = neko.get("url");
             try {
@@ -114,7 +114,7 @@ public class SetuListener {
                     FileUtils.delete(file);
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("图片获取失败：", e);
             }
         });
     }

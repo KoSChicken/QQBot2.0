@@ -31,7 +31,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static io.koschicken.constants.Constants.COMMON_CONFIG;
+import static io.koschicken.constants.Constants.commonConfig;
 
 @Slf4j
 @Data
@@ -65,7 +65,7 @@ public class SetuRunner implements Callable<LoliconResponse> {
             try {
                 FileUtils.forceMkdir(setuFolder);
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("无法创建图片文件夹：", e);
             }
         }
         File setuCompFolder = new File(SETU_COMP_DIR);
@@ -73,7 +73,7 @@ public class SetuRunner implements Callable<LoliconResponse> {
             try {
                 FileUtils.forceMkdir(setuCompFolder);
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("无法创建图片文件夹：", e);
             }
         }
     }
@@ -97,11 +97,11 @@ public class SetuRunner implements Callable<LoliconResponse> {
         String message = "叫车";
         boolean isGroup = true;
         if (Objects.nonNull(msg)) {
-            if (msg instanceof PrivateMsg) {
-                message = ((PrivateMsg) msg).getMsg();
+            if (msg instanceof PrivateMsg privateMsg) {
+                message = privateMsg.getMsg();
                 isGroup = false;
-            } else if (msg instanceof GroupMsg) {
-                message = ((GroupMsg) msg).getMsg();
+            } else if (msg instanceof GroupMsg groupMsg) {
+                message = groupMsg.getMsg();
             }
         }
         Pixiv pixiv = parseMsg(message);
@@ -155,7 +155,7 @@ public class SetuRunner implements Callable<LoliconResponse> {
     }
 
     private boolean tagCheck(String tag) {
-        String tags = COMMON_CONFIG.getSetuBlackTags();
+        String tags = commonConfig.getSetuBlackTags();
         if (StringUtils.isEmpty(tags)) {
             return false;
         }
@@ -216,8 +216,7 @@ public class SetuRunner implements Callable<LoliconResponse> {
             if (!CollectionUtils.isEmpty(data)) {
                 data.parallelStream().forEach(p -> msgList.add(buildMessage(p)));
                 List<MessageContent> errors = msgList.stream().filter(m ->
-                        Objects.isNull(m) || m.getMsg().toLowerCase().contains("exception"))
-                        .collect(Collectors.toList());
+                        Objects.isNull(m) || m.getMsg().toLowerCase().contains("exception")).toList();
                 msgList.removeAll(errors);
                 if (CollectionUtils.isEmpty(msgList)) {
                     buildMsgFailed("./resource/image/zmsn.jpg", msgList, messageContentBuilder, "炸了");
@@ -261,7 +260,6 @@ public class SetuRunner implements Callable<LoliconResponse> {
                 return messageContentBuilder.image(originalFile.getAbsolutePath()).text(message).build();
             }
         } catch (IOException e) {
-            e.printStackTrace();
             return messageContentBuilder.text("[error]" + e.getClass().getName()).build();
         }
         return null;
@@ -284,7 +282,7 @@ public class SetuRunner implements Callable<LoliconResponse> {
                     FileUtils.deleteQuietly(pic);
                     return true;
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    log.error("IOException：", e);
                 }
             }
         }

@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -31,7 +32,7 @@ public class MikananiListener {
 
     @OnGroup
     @Filter(value = "看番", matchType = MatchType.STARTS_WITH)
-    public void netEaseMusic(GroupMsg groupMsg, MsgSender sender) throws Exception {
+    public void netEaseMusic(GroupMsg groupMsg, MsgSender sender) throws IOException {
         String keyword = groupMsg.getMsgContent().getMsg().replace("看番", "").trim();
         List<Mikanani> mikananiList = Mikanani.search(keyword);
         if (!CollectionUtils.isEmpty(mikananiList)) {

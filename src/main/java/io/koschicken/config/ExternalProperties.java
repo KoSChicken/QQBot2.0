@@ -22,7 +22,7 @@ public class ExternalProperties {
         try {
             writeAccount(properties);
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("IOException: ", e);
         }
     }
 
@@ -43,7 +43,7 @@ public class ExternalProperties {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("IOException: ", e);
         }
     }
 
@@ -61,7 +61,7 @@ public class ExternalProperties {
             storeProp(properties, file, "setu.price", "0", "### 涩图价格");
             storeProp(properties, file, "cygames.delay", "60", "### 猜语音游戏公布答案的时间");
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("IOException: ", e);
         }
     }
 

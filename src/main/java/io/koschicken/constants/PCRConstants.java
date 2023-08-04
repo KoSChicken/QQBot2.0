@@ -2,6 +2,9 @@ package io.koschicken.constants;
 
 public class PCRConstants {
 
+    private PCRConstants() {
+    }
+
     public static int SSR_CHANCE = 25;
     public static int SR_CHANCE = 180;
     public static int R_CHANCE = 795;

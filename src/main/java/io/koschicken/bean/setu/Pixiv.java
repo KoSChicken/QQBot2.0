@@ -106,7 +106,7 @@ public class Pixiv {
         pixiv.setExt(data.getString("ext"));
         pixiv.setUploadDate(data.getLong("uploadDate"));
         JSONObject urls = data.getJSONObject("urls");
-        pixiv.setUrls(JSONObject.parseObject(urls.toJSONString(), new TypeReference<>() {
+        pixiv.setUrls(JSON.parseObject(urls.toJSONString(), new TypeReference<>() {
         }));
         log.info("这次请求到的图片url： {}", urls.get("original"));
         return pixiv;

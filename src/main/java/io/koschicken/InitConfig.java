@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Set;
 
-import static io.koschicken.constants.Constants.COMMON_CONFIG;
+import static io.koschicken.constants.Constants.commonConfig;
 import static io.koschicken.constants.Constants.CONFIG_DIR;
 import static io.koschicken.constants.PCRConstants.*;
 import static io.koschicken.intercept.BotIntercept.GROUP_CONFIG_MAP;
@@ -41,7 +41,7 @@ public class InitConfig {
             try {
                 FileUtils.touch(file);
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("配置文件创建失败: ", e);
             }
         } else {
             try {
@@ -56,7 +56,7 @@ public class InitConfig {
                     }
                 }
             } catch (IOException | NullPointerException e) {
-                e.printStackTrace();
+                log.error("error: ", e);
             }
         }
     }
@@ -69,27 +69,27 @@ public class InitConfig {
             try {
                 freshConfig(file);
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("配置文件创建失败: ", e);
             }
-            COMMON_CONFIG = new CommonConfig();
-            COMMON_CONFIG.setMaiyaoPic("shop.png");
-            COMMON_CONFIG.setGachaLimit(300);
-            COMMON_CONFIG.setGachaCooldown(10);
-            COMMON_CONFIG.setGlobalSwitch(false);
-            COMMON_CONFIG.setGachaSwitch(false);
-            COMMON_CONFIG.setMaiyaoSwitch(false);
-            COMMON_CONFIG.setDiceSwitch(false);
-            COMMON_CONFIG.setSetuSwitch(false);
-            COMMON_CONFIG.setLotterySwitch(false);
-            COMMON_CONFIG.setSignCoin(5000);
-            COMMON_CONFIG.setSetuCoin(500);
-            COMMON_CONFIG.setR18Private(true);
-            COMMON_CONFIG.setSetuBlackTags("");
+            commonConfig = new CommonConfig();
+            commonConfig.setMaiyaoPic("shop.png");
+            commonConfig.setGachaLimit(300);
+            commonConfig.setGachaCooldown(10);
+            commonConfig.setGlobalSwitch(false);
+            commonConfig.setGachaSwitch(false);
+            commonConfig.setMaiyaoSwitch(false);
+            commonConfig.setDiceSwitch(false);
+            commonConfig.setSetuSwitch(false);
+            commonConfig.setLotterySwitch(false);
+            commonConfig.setSignCoin(5000);
+            commonConfig.setSetuCoin(500);
+            commonConfig.setR18Private(true);
+            commonConfig.setSetuBlackTags("");
         }
         try {
-            COMMON_CONFIG = loadConfig(file);
+            commonConfig = loadConfig(file);
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("配置文件加载失败: ", e);
         }
     }
 
@@ -135,7 +135,7 @@ public class InitConfig {
             pro.load(in);
             return pro.get("masterqq").toString();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("IOException: ", e);
         }
         return "";
     }
@@ -227,7 +227,7 @@ public class InitConfig {
                 UP_SSR_CHANCE = upGacha.getInteger("三星up总概率");
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("IOException: ", e);
         } catch (NullPointerException e) {
             log.error("扭蛋配置文件错误，是否删除了一项？");
         }

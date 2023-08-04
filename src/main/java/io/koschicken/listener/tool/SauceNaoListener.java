@@ -20,6 +20,7 @@ import love.forte.simbot.component.mirai.message.MiraiMessageContentBuilderFacto
 import love.forte.simbot.filter.MatchType;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -34,7 +35,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static io.koschicken.constants.Constants.COMMON_CONFIG;
+import static io.koschicken.constants.Constants.commonConfig;
 
 @Slf4j
 @Service
@@ -53,7 +54,7 @@ public class SauceNaoListener {
             try {
                 FileUtils.forceMkdir(sauceNaoDir);
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("无法创建文件夹：", e);
             }
         }
     }
@@ -63,7 +64,7 @@ public class SauceNaoListener {
     public void saucenao(GroupMsg groupMsg, MsgSender sender) throws IOException {
         String picUrl = groupMsg.getMsgContent().getCats("image").get(0).get("url");
         if (Objects.nonNull(picUrl)) {
-            String requestUrl = SAUCENAO_API + URLEncoder.encode(picUrl, StandardCharsets.UTF_8) + "&api_key=" + COMMON_CONFIG.getSauceNaoApiKey();
+            String requestUrl = SAUCENAO_API + URLEncoder.encode(picUrl, StandardCharsets.UTF_8) + "&api_key=" + commonConfig.getSauceNaoApiKey();
             log.info(requestUrl);
             String s = HttpUtils.get(requestUrl);
             Sauce sauce = SauceNaoUtils.JSON2Sauce(s);
@@ -71,18 +72,23 @@ public class SauceNaoListener {
             if (!CollectionUtils.isEmpty(results)) {
                 ArrayList<MessageContent> msgList = new ArrayList<>();
                 results.subList(0, Math.min(2, results.size() - 1)).forEach(result -> msgList.add(buildMessage(result)));
-                MiraiMessageContentBuilder messageContentBuilder = factory.getMessageContentBuilder();
-                messageContentBuilder.forwardMessage(forwardBuilder -> {
-                    for (MessageContent messageContent : msgList) {
-                        forwardBuilder.add(RandomUtils.nextBoolean() ? groupMsg.getAccountInfo() : randomGroupMember(groupMsg, sender), messageContent);
-                    }
-                });
-                final MiraiMessageContent messageContent = messageContentBuilder.build();
+                final MiraiMessageContent messageContent = getMiraiMessageContent(groupMsg, sender, msgList);
                 sender.SENDER.sendGroupMsg(groupMsg, messageContent);
             } else {
                 sender.SENDER.sendGroupMsg(groupMsg, "冇");
             }
         }
+    }
+
+    @NotNull
+    private MiraiMessageContent getMiraiMessageContent(GroupMsg groupMsg, MsgSender sender, ArrayList<MessageContent> msgList) {
+        MiraiMessageContentBuilder messageContentBuilder = factory.getMessageContentBuilder();
+        messageContentBuilder.forwardMessage(forwardBuilder -> {
+            for (MessageContent messageContent : msgList) {
+                forwardBuilder.add(RandomUtils.nextBoolean() ? groupMsg.getAccountInfo() : randomGroupMember(groupMsg, sender), messageContent);
+            }
+        });
+        return messageContentBuilder.build();
     }
 
     private GroupMemberInfo randomGroupMember(GroupMsg groupMsg, MsgSender sender) {

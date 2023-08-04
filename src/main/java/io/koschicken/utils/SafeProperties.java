@@ -1,5 +1,7 @@
 package io.koschicken.utils;
 
+import lombok.Getter;
+
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -7,8 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+@Getter
 @SuppressWarnings("unused")
 public class SafeProperties extends Properties {
+    @Serial
     private static final long serialVersionUID = 5011694856722313621L;
 
     private static final String KEY_VALUE_SEPARATORS = "=: \t\r\n\f";
@@ -39,10 +43,6 @@ public class SafeProperties extends Properties {
         return hexDigit[(nibble & 0xF)];
     }
 
-    public PropertiesContext getContext() {
-        return context;
-    }
-
     @Override
     public synchronized void load(InputStream inStream) throws IOException {
         BufferedReader in = new BufferedReader(new InputStreamReader(inStream, FILE_CODE));
@@ -54,7 +54,7 @@ public class SafeProperties extends Properties {
                 return;
             }
             StringBuilder intactLine = new StringBuilder(line);
-            if (line.length() > 0) {
+            if (!line.isEmpty()) {
                 // Find start of key
                 int len = line.length();
                 int keyStart;
@@ -214,15 +214,13 @@ public class SafeProperties extends Properties {
         context.addCommentLine("");
     }
 
+    @Getter
     static class PropertiesContext implements Serializable {
 
+        @Serial
         private static final long serialVersionUID = 2152372128379361196L;
 
         private final List<Object> commentOrEntries = new ArrayList<>();
-
-        public List<Object> getCommentOrEntries() {
-            return commentOrEntries;
-        }
 
         public void addCommentLine(String line) {
             commentOrEntries.add(line);
@@ -248,7 +246,7 @@ public class SafeProperties extends Properties {
         public int remove(String key) {
             for (int index = 0; index < commentOrEntries.size(); index++) {
                 Object obj = commentOrEntries.get(index);
-                if (obj instanceof PropertyEntry && key.equals(((PropertyEntry) obj).getKey())) {
+                if (obj instanceof PropertyEntry entry && key.equals((entry.getKey()))) {
                     commentOrEntries.remove(obj);
                     return index;
                 }
@@ -256,6 +254,7 @@ public class SafeProperties extends Properties {
             return commentOrEntries.size();
         }
 
+        @Getter
         static class PropertyEntry {
             private String key;
 
@@ -273,24 +272,12 @@ public class SafeProperties extends Properties {
                 this.line = line;
             }
 
-            public String getLine() {
-                return line;
-            }
-
             public void setLine(String line) {
                 this.line = line;
             }
 
-            public String getKey() {
-                return key;
-            }
-
             public void setKey(String key) {
                 this.key = key;
-            }
-
-            public String getValue() {
-                return value;
             }
 
             public void setValue(String value) {

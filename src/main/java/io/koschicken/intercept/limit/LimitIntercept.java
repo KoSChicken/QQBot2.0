@@ -74,7 +74,7 @@ public class LimitIntercept implements ListenerInterceptor {
             }
             if (isCode) {
                 code = msgGet.getAccountInfo().getAccountCode();
-                if (Objects.equals(Constants.COMMON_CONFIG.getMasterQQ(), code)) {
+                if (Objects.equals(Constants.commonConfig.getMasterQQ(), code)) {
                     return InterceptionType.ALLOW;
                 }
                 keyStringBuilder.append(code);

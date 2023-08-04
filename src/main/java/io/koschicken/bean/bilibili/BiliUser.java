@@ -21,7 +21,7 @@ public class BiliUser {
             try {
                 FileUtils.forceMkdir(videoFolder);
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("IOException: ", e);
             }
         }
     }
@@ -33,7 +33,7 @@ public class BiliUser {
     private String upic;
     private File upicFile;
 
-    public BiliUser(String mid, String uname, String usign, Integer fans, Integer videos, String upic) throws IOException {
+    public BiliUser(String mid, String uname, String usign, Integer fans, String upic) throws IOException {
         this.mid = mid;
         this.uname = uname;
         this.usign = usign;

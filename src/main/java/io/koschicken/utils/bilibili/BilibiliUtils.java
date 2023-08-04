@@ -7,6 +7,7 @@ import io.koschicken.bean.bilibili.BiliUser;
 import io.koschicken.bean.bilibili.Following;
 import io.koschicken.bean.bilibili.Video;
 import io.koschicken.utils.HttpUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -18,10 +19,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import static io.koschicken.constants.Constants.COMMON_CONFIG;
+import static io.koschicken.constants.Constants.commonConfig;
 import static io.koschicken.constants.Constants.CONFIG_DIR;
 import static io.koschicken.intercept.BotIntercept.GROUP_BILIBILI_MAP;
 
+@Slf4j
 public class BilibiliUtils {
 
     private BilibiliUtils() {
@@ -35,7 +37,7 @@ public class BilibiliUtils {
             try {
                 FileUtils.touch(jsonFile);
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("创建Bilibili配置文件失败", e);
             }
         } else {
             try {
@@ -50,14 +52,14 @@ public class BilibiliUtils {
                     }
                 }
             } catch (IOException | NullPointerException e) {
-                e.printStackTrace();
+                log.error("读取Bilibili配置文件失败", e);
             }
         }
     }
 
     public static BiliUser searchByName(String name) throws IOException {
         String url = "https://api.bilibili.com/x/web-interface/search/type?search_type=bili_user&keyword=";
-        String json = HttpUtils.get(url + name, COMMON_CONFIG.getBilibiliCookie());
+        String json = HttpUtils.get(url + name, commonConfig.getBilibiliCookie());
         JSONObject jsonObject = JSON.parseObject(json);
         JSONObject data = jsonObject.getJSONObject("data");
         if (Objects.nonNull(data)) {
@@ -75,7 +77,7 @@ public class BilibiliUtils {
         return path.substring(path.lastIndexOf('/') + 1);
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
 //        String url = "http://i0.hdslb.com/bfs/live/new_room_cover/2b3955ab074e0d7fb9fcf849bb217de0b24c9d06.jpg";
 //        String imageName = getImageName(new URL(url));
 //        System.out.println(imageName);

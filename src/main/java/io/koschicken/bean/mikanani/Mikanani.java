@@ -2,6 +2,7 @@ package io.koschicken.bean.mikanani;
 
 import io.koschicken.bean.Magnet;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -12,12 +13,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Data
 public class Mikanani {
 
-    private final static String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36 SE 2.X MetaSr 1.0";
-    private final static int MAX = 5;
-    private final static int MAX_EP = 5;
+    private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36 SE 2.X MetaSr 1.0";
+    private static final int MAX = 5;
+    private static final int MAX_EP = 5;
 
     private String name;
     private List<Magnet> mags;
@@ -39,7 +41,7 @@ public class Mikanani {
                     list.add(search(keyword, id));
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("IOException: ", e);
             }
         }
         return list;
@@ -68,6 +70,6 @@ public class Mikanani {
 
     public static void main(String[] args) throws IOException {
         List<Mikanani> list = search("彻夜之歌");
-        list.forEach(System.out::println);
+        list.forEach(mikanani -> log.debug(mikanani.toString()));
     }
 }

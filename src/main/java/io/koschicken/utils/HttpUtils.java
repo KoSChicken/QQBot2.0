@@ -1,5 +1,6 @@
 package io.koschicken.utils;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.fluent.Request;
 
 import java.io.ByteArrayOutputStream;
@@ -10,12 +11,15 @@ import java.net.HttpCookie;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
+@Slf4j
 public class HttpUtils {
+
+    private HttpUtils() {
+    }
 
     public static String get(String getUrl) throws IOException {
         return Request.Get(getUrl)
@@ -30,11 +34,11 @@ public class HttpUtils {
                 .execute().returnContent().asString(StandardCharsets.UTF_8);
     }
 
-    public static String postContent(String url, HashMap<String, String> headers, String param) {
+    public static String postContent(String url, Map<String, String> headers, String param) {
         return postContent(url, headers, param, null);
     }
 
-    public static String postContent(String url, HashMap<String, String> headers, String param, List<HttpCookie> listCookie) {
+    public static String postContent(String url, Map<String, String> headers, String param, List<HttpCookie> listCookie) {
         ByteArrayOutputStream out;
         InputStream in = null;
         try {
@@ -65,11 +69,9 @@ public class HttpUtils {
                 out.write(buffer, 0, len);
                 len = in.read(buffer);
             }
-            return out.toString("UTF-8");
-            // printCookie(manager.getCookieStore());
+            return out.toString(StandardCharsets.UTF_8);
         } catch (Exception e) {
-            System.out.println("发送GET请求出现异常！" + e);
-            // e.printStackTrace();
+            log.error("发送GET请求出现异常！" + e);
             return "";
         } finally {
             try {
@@ -82,7 +84,7 @@ public class HttpUtils {
         }
     }
 
-    private static HttpURLConnection connect(HashMap<String, String> headers, String url, List<HttpCookie> listCookie)
+    private static HttpURLConnection connect(Map<String, String> headers, String url, List<HttpCookie> listCookie)
             throws IOException {
         URL realUrl = new URL(url);
         HttpURLConnection conn = (HttpURLConnection) realUrl.openConnection();
