@@ -19,6 +19,7 @@ import love.forte.simbot.api.sender.Sender;
 import love.forte.simbot.component.mirai.message.MiraiMessageContentBuilder;
 import love.forte.simbot.filter.MatchType;
 import org.apache.commons.io.FileUtils;
+import org.apache.http.HttpException;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -91,7 +92,7 @@ public class BilibiliListener {
 
     @OnGroup
     @Filter(value = "/lsfo", matchType = MatchType.EQUALS)
-    public void followingList(GroupMsg groupMsg, Sender sender) throws IOException {
+    public void followingList(GroupMsg groupMsg, Sender sender) throws IOException, HttpException {
         BilibiliUtils.bilibiliJSON();
         String groupCode = groupMsg.getGroupInfo().getGroupCode();
         List<Following> followings = GROUP_BILIBILI_MAP.get(groupCode);
@@ -156,7 +157,7 @@ public class BilibiliListener {
         if (!CollectionUtils.isEmpty(queryMap)) {
             String t = queryMap.get("t");
             if (Objects.nonNull(t)) {
-               return "?t=" + URLUtils.string2Float(t);
+                return "?t=" + URLUtils.string2Float(t);
             }
         }
         return "";
@@ -209,7 +210,7 @@ public class BilibiliListener {
         return -1;
     }
 
-    private void dealName(List<Following> followings, String groupCode) throws IOException {
+    private void dealName(List<Following> followings, String groupCode) throws IOException, HttpException {
         int callAPICount = 0;
         for (Following following : followings) {
             // 只有在没有存昵称或者上次昵称获取时间超过3天才会获取昵称

@@ -16,6 +16,7 @@ import love.forte.simbot.filter.MatchType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,8 +33,11 @@ public class MikananiListener {
 
     @OnGroup
     @Filter(value = "看番", matchType = MatchType.STARTS_WITH)
-    public void netEaseMusic(GroupMsg groupMsg, MsgSender sender) throws IOException {
+    public void mikanani(GroupMsg groupMsg, MsgSender sender) throws IOException {
         String keyword = groupMsg.getMsgContent().getMsg().replace("看番", "").trim();
+        if (!StringUtils.hasText(keyword)) {
+            return;
+        }
         List<Mikanani> mikananiList = Mikanani.search(keyword);
         if (!CollectionUtils.isEmpty(mikananiList)) {
             MiraiMessageContentBuilder messageContentBuilder = factory.getMessageContentBuilder();

@@ -30,7 +30,7 @@ public class NetEaseMusic {
         return String.format("http://music.163.com/song/media/outer/url?id=%s.mp3", id);
     }
 
-    public static NetEaseMusic searchWithoutLink(String keyWord, int pageSize, int pn) throws Exception {
+    public static NetEaseMusic searchWithoutLink(String keyWord, int pageSize, int pn) {
         String url = "https://music.163.com/weapi/cloudsearch/get/web?csrf_token=";
         HashMap<String, String> headers = new HashMap<>();
         headers.put("content-type", "application/x-www-form-urlencoded");
@@ -50,5 +50,10 @@ public class NetEaseMusic {
         String params = NetEaseEncryptUtil.generateToken(obj.toString());
         String result = HttpUtils.postContent(url, headers, params);
         return NetEaseUtils.JSON2Song(result);
+    }
+
+    public static void main(String[] args) {
+        NetEaseMusic music = searchWithoutLink("爬", 1, 1);
+        System.out.printf(music.toString());
     }
 }

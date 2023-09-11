@@ -12,6 +12,7 @@ import love.forte.simbot.api.message.events.GroupMsg;
 import love.forte.simbot.api.sender.BotSender;
 import love.forte.simbot.api.sender.Sender;
 import love.forte.simbot.bot.BotManager;
+import org.apache.http.HttpException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -32,9 +33,9 @@ public class BilibiliTask {
     private static final HashMap<String, Space> NOTICED = new HashMap<>();
 
     @Autowired
-    BotManager botManager;
+    private BotManager botManager;
 
-    @Scheduled(cron = "*/20 * * * * *")
+    @Scheduled(cron = "0 * * ? * *")
     public void liveNotice() {
         BilibiliUtils.bilibiliJSON();
         Set<Following> allFollowing = fetchLive();
@@ -96,9 +97,11 @@ public class BilibiliTask {
                 if (following.isNotification()) {
                     String uid = following.getUid();
                     Space space = Space.getSpace(uid);
-                    LIVE_MAP.putIfAbsent(uid, space);
+                    if (Objects.nonNull(space)) {
+                        LIVE_MAP.putIfAbsent(uid, space);
+                    }
                 }
-            } catch (IOException e) {
+            } catch (IOException | HttpException e) {
                 log.error("获取B站用户信息失败", e);
             }
         });
@@ -107,9 +110,14 @@ public class BilibiliTask {
 
     private String printMap() {
         StringBuilder sb = new StringBuilder();
-        LIVE_MAP.forEach((k, v) -> sb.append("up：").append(v.getName()).append("\t")
-                .append("标题：").append(v.getLiveRoom().getTitle()).append("\t")
-                .append("状态：").append(v.getLiveRoom().getLiveStatus() == 0 ? "未直播" : "直播中").append("\n"));
+        LIVE_MAP.forEach((k, v) -> {
+            boolean streaming = v.getLiveRoom().getLiveStatus() != 0;
+            if (streaming) {
+                sb.append("up：").append(v.getName()).append("\t")
+                        .append("标题：").append(v.getLiveRoom().getTitle()).append("\t")
+                        .append("状态：").append("直播中").append("\n");
+            }
+        });
         return sb.toString();
     }
 

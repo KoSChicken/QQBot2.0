@@ -31,17 +31,6 @@ public class MeowListener {
     private static final String UA = "User-Agent";
     private static final String UA_STRING = "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3";
 
-    static {
-        File meowFolder = new File(MEOW_DIR);
-        if (!meowFolder.exists()) {
-            try {
-                FileUtils.forceMkdir(meowFolder);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
     @OnGroup
     @Filter(value = "喵(.*?)", matchType = MatchType.REGEX_MATCHES)
     public void meow(GroupMsg msg, MsgSender sender) throws IOException {

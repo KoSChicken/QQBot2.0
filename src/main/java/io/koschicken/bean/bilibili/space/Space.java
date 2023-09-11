@@ -10,12 +10,11 @@ import io.koschicken.utils.bilibili.WbiUtils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.jetbrains.annotations.Nullable;
+import org.apache.http.HttpException;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -29,19 +28,6 @@ import static org.springframework.util.ResourceUtils.isUrl;
 public class Space {
 
     private static final String LIVE_TEMP_FOLDER = "./temp/bilibili/live/";
-    private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36 Edg/108.0.1462.76";
-    private static LocalDateTime next = null;
-
-    static {
-        File liveFolder = new File(LIVE_TEMP_FOLDER);
-        if (!liveFolder.exists()) {
-            try {
-                FileUtils.forceMkdir(liveFolder);
-            } catch (IOException e) {
-                log.error("IOException: ", e);
-            }
-        }
-    }
 
     /**
      * 用户ID
@@ -90,12 +76,8 @@ public class Space {
      */
     private LiveRoom liveRoom;
 
-    public static Space getSpace(String mid) throws IOException {
+    public static Space getSpace(String mid) throws IOException, HttpException {
         String url = "https://api.bilibili.com/x/space/wbi/acc/info?mid=" + mid + "&token=&platform=web&" + generateWrid();
-        log.debug(url);
-        if (next != null && LocalDateTime.now().isBefore(next)) {
-            return null;
-        }
         String json = HttpUtils.get(url, commonConfig.getBilibiliCookie());
         JSONObject jsonObject = JSON.parseObject(json);
         Integer code = jsonObject.getInteger("code");
@@ -104,12 +86,8 @@ public class Space {
             if (data != null) {
                 return buildSpace(data);
             }
-        } else {
-            next = LocalDateTime.now().plusMinutes(15);
-            String message = jsonObject.getString("message");
-            log.error("获取用户信息失败，mid={}，message={}", mid, message);
         }
-        return null;
+        throw new HttpException("获取用户信息失败。url: " + url);
     }
 
     private static String generateWrid() throws IOException {
@@ -141,7 +119,6 @@ public class Space {
         return jsonObject.getJSONObject("data").getJSONObject("wbi_img");
     }
 
-    @Nullable
     private static Space buildSpace(String data) throws IOException {
         Space space = JSON.parseObject(data, Space.class);
         if (Objects.nonNull(space)) {

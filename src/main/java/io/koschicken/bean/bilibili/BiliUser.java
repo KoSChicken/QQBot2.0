@@ -15,17 +15,6 @@ public class BiliUser {
 
     private static final String USER_TEMP_FOLDER = "./temp/bilibili/user/";
 
-    static {
-        File videoFolder = new File(USER_TEMP_FOLDER);
-        if (!videoFolder.exists()) {
-            try {
-                FileUtils.forceMkdir(videoFolder);
-            } catch (IOException e) {
-                log.error("IOException: ", e);
-            }
-        }
-    }
-
     private String mid;
     private String uname;
     private String usign;

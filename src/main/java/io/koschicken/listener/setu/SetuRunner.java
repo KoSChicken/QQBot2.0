@@ -1,6 +1,5 @@
 package io.koschicken.listener.setu;
 
-import catcode.CatCodeUtil;
 import io.koschicken.bean.setu.LoliconResponse;
 import io.koschicken.bean.setu.Pixiv;
 import lombok.Data;
@@ -10,7 +9,6 @@ import love.forte.simbot.api.message.events.GroupMsg;
 import love.forte.simbot.api.message.events.MsgGet;
 import love.forte.simbot.api.message.events.PrivateMsg;
 import love.forte.simbot.api.message.results.GroupMemberInfo;
-import love.forte.simbot.api.message.results.GroupMemberList;
 import love.forte.simbot.api.sender.MsgSender;
 import love.forte.simbot.component.mirai.message.MiraiMessageContent;
 import love.forte.simbot.component.mirai.message.MiraiMessageContentBuilder;
@@ -18,12 +16,10 @@ import love.forte.simbot.component.mirai.message.MiraiMessageContentBuilderFacto
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.fluent.Request;
 import org.springframework.util.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -41,7 +37,6 @@ public class SetuRunner implements Callable<LoliconResponse> {
     private static final String SETU_COMP_DIR = "./temp/SETU/comp/";
     private static final String ARTWORK_PREFIX = "https://www.pixiv.net/artworks/";
     private static final String ARTIST_PREFIX = "https://www.pixiv.net/users/";
-    private static final String AVATAR_API = "http://thirdqq.qlogo.cn/g?b=qq&nk=";
     private static final HashMap<String, Integer> NUMBER;
 
     static {
@@ -82,10 +77,6 @@ public class SetuRunner implements Callable<LoliconResponse> {
     private MiraiMessageContentBuilderFactory factory;
     private MsgSender sender;
 
-    public SetuRunner(MiraiMessageContentBuilderFactory factory) {
-        this.factory = factory;
-    }
-
     public SetuRunner(MsgGet msg, MiraiMessageContentBuilderFactory factory, MsgSender sender) {
         this.msg = msg;
         this.factory = factory;
@@ -116,9 +107,10 @@ public class SetuRunner implements Callable<LoliconResponse> {
             String first = keyword.trim().substring(0, 1);
             loliconResponse = new LoliconResponse("", new ArrayList<>(), first + "nmlgb");
         }
-        boolean sent = isGroup && groupMember((GroupMsg) msg, sender, keyword);
-        if (!sent) {
-            send(loliconResponse, isGroup);
+        if (isGroup) {
+            sendGroup(loliconResponse);
+        } else {
+            sendPrivate(loliconResponse);
         }
         return loliconResponse;
     }
@@ -133,8 +125,8 @@ public class SetuRunner implements Callable<LoliconResponse> {
         String number;
         while (m.find()) {
             if (msg.startsWith("叫")) {
-                tag = m.group(1).trim();
-                if ("r18".equals(tag) || "R18".equals(tag)) {
+                tag = m.group(1).trim().toLowerCase();
+                if ("r18".equals(tag)) {
                     tag = "";
                     r18 = true;
                 } else {
@@ -165,27 +157,35 @@ public class SetuRunner implements Callable<LoliconResponse> {
         return i <= 50 && tagList.contains(tag);
     }
 
-    private void send(LoliconResponse loliconResponse, boolean isGroup) {
+    private void sendGroup(LoliconResponse loliconResponse) {
         List<MessageContent> msgList = listMsg(loliconResponse);
         if (msgList.size() > 1 || checkR18(loliconResponse)) {
             MiraiMessageContentBuilder messageContentBuilder = factory.getMessageContentBuilder();
-                messageContentBuilder.forwardMessage(forwardBuilder -> {
-                    for (MessageContent messageContent : msgList) {
-                        forwardBuilder.add(RandomUtils.nextBoolean() ? msg.getAccountInfo() : randomGroupMember(), messageContent);
-                    }
-                });
+            messageContentBuilder.forwardMessage(forwardBuilder -> {
+                for (MessageContent messageContent : msgList) {
+                    forwardBuilder.add(RandomUtils.nextBoolean() ? msg.getAccountInfo() : randomGroupMember(), messageContent);
+                }
+            });
             final MiraiMessageContent messageContent = messageContentBuilder.build();
-            if (isGroup) {
-                sender.SENDER.sendGroupMsg((GroupMsg) msg, messageContent);
-            } else {
-                sender.SENDER.sendPrivateMsg(msg, messageContent);
-            }
+            sender.SENDER.sendGroupMsg((GroupMsg) msg, messageContent);
         } else {
-            if (isGroup) {
-                sender.SENDER.sendGroupMsg((GroupMsg) msg, msgList.get(0));
-            } else {
-                sender.SENDER.sendPrivateMsg(msg, msgList.get(0));
-            }
+            sender.SENDER.sendGroupMsg((GroupMsg) msg, msgList.get(0));
+        }
+    }
+
+    private void sendPrivate(LoliconResponse loliconResponse) {
+        List<MessageContent> msgList = listMsg(loliconResponse);
+        if (msgList.size() > 1 || checkR18(loliconResponse)) {
+            MiraiMessageContentBuilder messageContentBuilder = factory.getMessageContentBuilder();
+            messageContentBuilder.forwardMessage(forwardBuilder -> {
+                for (MessageContent messageContent : msgList) {
+                    forwardBuilder.add(RandomUtils.nextBoolean() ? msg.getAccountInfo() : randomGroupMember(), messageContent);
+                }
+            });
+            final MiraiMessageContent messageContent = messageContentBuilder.build();
+            sender.SENDER.sendPrivateMsg(msg, messageContent);
+        } else {
+            sender.SENDER.sendPrivateMsg(msg, msgList.get(0));
         }
     }
 
@@ -265,27 +265,4 @@ public class SetuRunner implements Callable<LoliconResponse> {
         return null;
     }
 
-    private boolean groupMember(GroupMsg msg, MsgSender sender, String tag) {
-        GroupMemberList groupMemberList = sender.GETTER.getGroupMemberList(msg);
-        for (GroupMemberInfo member : groupMemberList) {
-            String remarkOrNickname = member.getAccountRemarkOrNickname();
-            if (Objects.nonNull(remarkOrNickname) && Objects.equals(tag, remarkOrNickname.trim())) {
-                log.info("群名片：{}\ttag: {}", remarkOrNickname, tag);
-                String api = AVATAR_API + member.getAccountCode() + "&s=640";
-                try {
-                    InputStream imageStream = Request.Get(api).execute().returnResponse().getEntity().getContent();
-                    File pic = new File(SETU_DIR + member.getAccountCode() + System.currentTimeMillis() + ".jpg");
-                    FileUtils.copyInputStreamToFile(imageStream, pic);
-                    CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
-                    String image = catCodeUtil.getStringTemplate().image(pic.getAbsolutePath());
-                    sender.SENDER.sendGroupMsg(msg, image);
-                    FileUtils.deleteQuietly(pic);
-                    return true;
-                } catch (IOException e) {
-                    log.error("IOException：", e);
-                }
-            }
-        }
-        return false;
-    }
 }

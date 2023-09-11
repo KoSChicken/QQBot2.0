@@ -20,17 +20,6 @@ import static io.koschicken.constants.Constants.commonConfig;
 public class Video {
     private static final String VIDEO_TEMP_FOLDER = "./temp/bilibili/video/";
 
-    static {
-        File videoFolder = new File(VIDEO_TEMP_FOLDER);
-        if (!videoFolder.exists()) {
-            try {
-                FileUtils.forceMkdir(videoFolder);
-            } catch (IOException e) {
-                log.error("IOException: ", e);
-            }
-        }
-    }
-
     private final String av;
     private final String bv;
     private File pic;
