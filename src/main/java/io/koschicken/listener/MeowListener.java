@@ -2,6 +2,7 @@ package io.koschicken.listener;
 
 import catcode.CatCodeUtil;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import love.forte.simbot.annotation.Filter;
@@ -27,7 +28,7 @@ import java.util.UUID;
 @Service
 public class MeowListener {
     private static final String MEOW_DIR = "./temp/MEOW/";
-    private static final String MEOW = "http://aws.random.cat/meow";
+    private static final String MEOW = "https://api.thecatapi.com/v1/images/search";
     private static final String UA = "User-Agent";
     private static final String UA_STRING = "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.0.3) Gecko/2008092417 Firefox/3.0.3";
 
@@ -36,16 +37,17 @@ public class MeowListener {
     public void meow(GroupMsg msg, MsgSender sender) throws IOException {
         ResponseHandler<String> myHandler = response -> EntityUtils.toString(response.getEntity(), Consts.UTF_8);
         String response = Request.Get(MEOW).addHeader(UA, UA_STRING).execute().handleResponse(myHandler);
-        JSONObject jsonObject = JSON.parseObject(response);
-        String fileUrl = jsonObject.getString("file");
+        JSONArray array = JSON.parseArray(response);
+        JSONObject jsonObject = array.getJSONObject(0);
+        String fileUrl = jsonObject.getString("url");
         String fileSuffix = fileUrl.substring(fileUrl.lastIndexOf("."));
         String uuid = UUID.randomUUID().toString();
         File file = new File(MEOW_DIR + uuid + fileSuffix);
         if (!Objects.equals(fileSuffix, ".gif")) {
-            Thumbnails.of(new URL(fileUrl.replace("https", "http"))).scale(1)
+            Thumbnails.of(new URL(fileUrl)).scale(1)
                     .outputQuality(0.25).toFile(file);
         } else {
-            FileUtils.copyURLToFile(new URL(fileUrl.replace("https", "http")), file);
+            FileUtils.copyURLToFile(new URL(fileUrl), file);
         }
         CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
         String image = catCodeUtil.getStringTemplate().image(file.getAbsolutePath());
