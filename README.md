@@ -18,3 +18,7 @@
 使用方法：
 
 ~~直接启动jar包即可~~需要[第三方签名服务](https://github.com/cssxsh/fix-protocol-version)才可以登录，初次启动会提醒输入bot的账号、密码和bot管理员的QQ号。
+
+
+## 感谢JetBrains提供授权
+![JetBrains Logo (Main) logo](https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.svg)
