@@ -13,7 +13,6 @@ import love.forte.simbot.component.mirai.message.MiraiMessageContent;
 import love.forte.simbot.component.mirai.message.MiraiMessageContentBuilder;
 import love.forte.simbot.component.mirai.message.MiraiMessageContentBuilderFactory;
 import love.forte.simbot.filter.MatchType;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -28,8 +27,11 @@ import java.util.stream.Collectors;
 @Service
 public class MikananiListener {
 
-    @Autowired
-    private MiraiMessageContentBuilderFactory factory;
+    private final MiraiMessageContentBuilderFactory factory;
+
+    public MikananiListener(MiraiMessageContentBuilderFactory factory) {
+        this.factory = factory;
+    }
 
     @OnGroup
     @Filter(value = "看番", matchType = MatchType.STARTS_WITH)

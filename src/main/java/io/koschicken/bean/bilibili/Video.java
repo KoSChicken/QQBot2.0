@@ -2,6 +2,7 @@ package io.koschicken.bean.bilibili;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import io.koschicken.config.BilibiliConfig;
 import io.koschicken.utils.HttpUtils;
 import io.koschicken.utils.bilibili.BVAVUtils;
 import io.koschicken.utils.bilibili.BilibiliUtils;
@@ -12,8 +13,6 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-
-import static io.koschicken.constants.Constants.commonConfig;
 
 @Slf4j
 @Data
@@ -85,12 +84,12 @@ public class Video {
      */
     public static String getVideoByAV(String av) throws IOException {
         String url = "https://api.bilibili.com/x/web-interface/view?aid=" + av;
-        return HttpUtils.get(url, commonConfig.getBilibiliCookie());
+        return HttpUtils.get(url, BilibiliConfig.getInstance().getCookie());
     }
 
     public static String getVideoByBV(String bv) throws IOException {
         String url = "https://api.bilibili.com/x/web-interface/view?bvid=" + bv;
-        return HttpUtils.get(url, commonConfig.getBilibiliCookie());
+        return HttpUtils.get(url, BilibiliConfig.getInstance().getCookie());
     }
 
     public void fresh() throws IOException {

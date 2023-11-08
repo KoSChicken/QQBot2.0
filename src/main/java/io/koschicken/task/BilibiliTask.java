@@ -4,6 +4,10 @@ import catcode.CatCodeUtil;
 import io.koschicken.bean.bilibili.Following;
 import io.koschicken.bean.bilibili.space.LiveRoom;
 import io.koschicken.bean.bilibili.space.Space;
+import io.koschicken.bot.Bilibili;
+import io.koschicken.bot.Groups;
+import io.koschicken.config.BotConfig;
+import io.koschicken.config.GroupConfig;
 import io.koschicken.utils.bilibili.BilibiliUtils;
 import lombok.extern.slf4j.Slf4j;
 import love.forte.simbot.annotation.Filter;
@@ -13,17 +17,12 @@ import love.forte.simbot.api.sender.BotSender;
 import love.forte.simbot.api.sender.Sender;
 import love.forte.simbot.bot.BotManager;
 import org.apache.http.HttpException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.*;
-
-import static io.koschicken.constants.Constants.commonConfig;
-import static io.koschicken.intercept.BotIntercept.GROUP_BILIBILI_MAP;
-import static io.koschicken.intercept.BotIntercept.GROUP_CONFIG_MAP;
 
 @Slf4j
 @Component
@@ -32,14 +31,19 @@ public class BilibiliTask {
     private static final HashMap<String, Space> LIVE_MAP = new HashMap<>();
     private static final HashMap<String, Space> NOTICED = new HashMap<>();
 
-    @Autowired
-    private BotManager botManager;
+    private final BotManager botManager;
+
+    public BilibiliTask(BotManager botManager) {
+        this.botManager = botManager;
+    }
 
     @Scheduled(cron = "0 * * ? * *")
     public void liveNotice() {
         BilibiliUtils.bilibiliJSON();
         Set<Following> allFollowing = fetchLive();
-        log.info("当前监听的直播间：\n{}", GROUP_BILIBILI_MAP.isEmpty() ? "无" : printMap());
+        if (!LIVE_MAP.isEmpty()) {
+            log.info("当前监听的直播间：\n{}", printMap());
+        }
         for (Following following : allFollowing) {
             if (following.isNotification()) {
                 String uid = following.getUid();
@@ -61,16 +65,16 @@ public class BilibiliTask {
     @OnGroup
     @Filter(".bilibiliLive")
     public void bilibiliLive(GroupMsg groupMsg, Sender sender) {
-        if (Objects.equals(commonConfig.getMasterQQ(), groupMsg.getAccountInfo().getAccountCode())) {
+        if (Objects.equals(BotConfig.getInstance().getMasterQQ(), groupMsg.getAccountInfo().getAccountCode())) {
             liveNotice();
         }
     }
 
     private Set<Following> allFollowing() {
         Set<Following> followingSet = new HashSet<>();
-        Set<String> groupList = GROUP_BILIBILI_MAP.keySet();
+        Set<String> groupList = Bilibili.getInstance().getGroupMap().keySet();
         for (String groupCode : groupList) {
-            List<Following> followingList = GROUP_BILIBILI_MAP.get(groupCode);
+            List<Following> followingList = Bilibili.getInstance().get(groupCode);
             followingSet.addAll(followingList);
         }
         return followingSet;
@@ -78,9 +82,9 @@ public class BilibiliTask {
 
     private Set<String> groupCodeByFollowing(String uid) {
         Set<String> group = new HashSet<>();
-        Set<String> groupList = GROUP_BILIBILI_MAP.keySet();
+        Set<String> groupList = Bilibili.getInstance().getGroupMap().keySet();
         for (String groupCode : groupList) {
-            List<Following> followingList = GROUP_BILIBILI_MAP.get(groupCode);
+            List<Following> followingList = Bilibili.getInstance().get(groupCode);
             boolean match = followingList.stream().anyMatch(following -> Objects.equals(following.getUid(), uid));
             if (match) {
                 group.add(groupCode);
@@ -135,7 +139,8 @@ public class BilibiliTask {
         if (!stringBuilder.isEmpty()) {
             Set<String> groups = groupCodeByFollowing(space.getMid());
             for (String groupCode : groups) {
-                if (Objects.nonNull(GROUP_CONFIG_MAP.get(groupCode)) && GROUP_CONFIG_MAP.get(groupCode).isGlobalSwitch()) {
+                GroupConfig groupConfig = Groups.getInstance().get(groupCode);
+                if (Objects.nonNull(groupConfig) && groupConfig.isGlobalSwitch()) {
                     msgSender.SENDER.sendGroupMsg(groupCode, stringBuilder.toString());
                 }
             }

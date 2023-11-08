@@ -1,7 +1,7 @@
 package io.koschicken.listener.setu;
 
 import catcode.Neko;
-import io.koschicken.bean.GroupPower;
+import io.koschicken.config.BotConfig;
 import io.koschicken.intercept.limit.Limit;
 import io.koschicken.utils.FingerPrint;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +16,6 @@ import love.forte.simbot.component.mirai.message.MiraiMessageContentBuilderFacto
 import love.forte.simbot.filter.MatchType;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
@@ -28,10 +27,6 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
-
-import static io.koschicken.constants.Constants.commonConfig;
-import static io.koschicken.intercept.BotIntercept.GROUP_CONFIG_MAP;
 
 @Slf4j
 @Service
@@ -41,20 +36,20 @@ public class SetuListener {
     private static final long CD = 60;
     private static final String TEMP_DIR = "./temp/";
 
-    @Autowired
-    private MiraiMessageContentBuilderFactory factory;
+    private final MiraiMessageContentBuilderFactory factory;
+
+    public SetuListener(MiraiMessageContentBuilderFactory factory) {
+        this.factory = factory;
+    }
 
     @Limit(CD)
     @OnGroup
     @OnPrivate
     @Filter(value = "^叫[车車](.*)(.*)?(|r18)$", matchType = MatchType.REGEX_MATCHES)
     public void driver1(MsgGet msg, MsgSender sender) {
-        if (msg instanceof GroupMsg groupMsg && !isSetuOn(groupMsg.getGroupInfo().getGroupCode())) {
-            return;
-        }
         String qq = msg.getAccountInfo().getAccountCode();
         int i = RandomUtils.nextInt(1, 100);
-        if (i <= 10 && !Objects.equals(qq, commonConfig.getMasterQQ())) {
+        if (i <= 10 && !Objects.equals(qq, BotConfig.getInstance().getMasterQQ())) {
             if (msg instanceof GroupMsg groupMsg) {
                 sender.SENDER.sendGroupMsg(groupMsg, "歇会");
             } else {
@@ -70,12 +65,9 @@ public class SetuListener {
     @OnPrivate
     @Filter(value = "^[来來](.*?)[点點丶份张張](.*?)的?(|r18)[色瑟涩][图圖]$", matchType = MatchType.REGEX_MATCHES)
     public void driver2(MsgGet msg, MsgSender sender) {
-        if (msg instanceof GroupMsg groupMsg && !isSetuOn(groupMsg.getGroupInfo().getGroupCode())) {
-            return;
-        }
         String qq = msg.getAccountInfo().getAccountCode();
         int i = RandomUtils.nextInt(1, 100);
-        if (i <= 50 && !Objects.equals(qq, commonConfig.getMasterQQ())) {
+        if (i <= 50 && !Objects.equals(qq, BotConfig.getInstance().getMasterQQ())) {
             if (msg instanceof GroupMsg groupMsg) {
                 sender.SENDER.sendGroupMsg(groupMsg, "来nm");
             } else {
@@ -117,10 +109,5 @@ public class SetuListener {
                 log.error("图片获取失败：", e);
             }
         });
-    }
-
-    private boolean isSetuOn(String groupCode) {
-        GroupPower groupPower = GROUP_CONFIG_MAP.get(groupCode);
-        return groupPower.isSetuSwitch();
     }
 }

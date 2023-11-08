@@ -5,6 +5,7 @@ import io.koschicken.bean.saucenao.Result;
 import io.koschicken.bean.saucenao.ResultData;
 import io.koschicken.bean.saucenao.ResultHeader;
 import io.koschicken.bean.saucenao.Sauce;
+import io.koschicken.config.BotConfig;
 import io.koschicken.utils.HttpUtils;
 import io.koschicken.utils.saucenao.SauceNaoUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +22,6 @@ import love.forte.simbot.filter.MatchType;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -35,15 +35,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static io.koschicken.constants.Constants.commonConfig;
-
 @Slf4j
 @Service
 public class SauceNaoListener {
 
-    @Autowired
-    private MiraiMessageContentBuilderFactory factory;
-
+    private final MiraiMessageContentBuilderFactory factory;
     private static final String TEMP_DIR = "./temp/";
     private static final String SAUCENAO_FOLDER = "saucenao/";
     private static final String SAUCENAO_API = "https://saucenao.com/search.php?db=999&output_type=2&testmode=1&numres=16&url=";
@@ -59,15 +55,20 @@ public class SauceNaoListener {
         }
     }
 
+    public SauceNaoListener(MiraiMessageContentBuilderFactory factory) {
+        this.factory = factory;
+    }
+
     @OnGroup
     @Filter(value = "/saucenao", matchType = MatchType.STARTS_WITH)
     public void saucenao(GroupMsg groupMsg, MsgSender sender) throws IOException {
         String picUrl = groupMsg.getMsgContent().getCats("image").get(0).get("url");
         if (Objects.nonNull(picUrl)) {
-            String requestUrl = SAUCENAO_API + URLEncoder.encode(picUrl, StandardCharsets.UTF_8) + "&api_key=" + commonConfig.getSauceNaoApiKey();
+            String requestUrl = SAUCENAO_API + URLEncoder.encode(picUrl, StandardCharsets.UTF_8) + "&api_key=" +
+                    BotConfig.getInstance().getSauceNaoApiKey();
             log.info(requestUrl);
             String s = HttpUtils.get(requestUrl);
-            Sauce sauce = SauceNaoUtils.JSON2Sauce(s);
+            Sauce sauce = SauceNaoUtils.json2Sauce(s);
             List<Result> results = sauce.getResults();
             if (!CollectionUtils.isEmpty(results)) {
                 ArrayList<MessageContent> msgList = new ArrayList<>();

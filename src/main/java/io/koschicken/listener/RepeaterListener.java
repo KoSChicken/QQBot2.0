@@ -77,7 +77,7 @@ public class RepeaterListener {
                 } else {
                     stack.clear();
                 }
-                 if (stack.size() > RandomUtils.nextInt(1, 5)) {
+                if (stack.size() > RandomUtils.nextInt(1, 5)) {
                     CatCodeUtil catCodeUtil = CatCodeUtil.getInstance();
                     String image = catCodeUtil.getStringTemplate().image(Objects.requireNonNull(neko.get("url")));
                     sender.SENDER.sendGroupMsg(groupCode, image); // 复读
@@ -91,11 +91,7 @@ public class RepeaterListener {
         String content = msg.getContent();
         if (content != null) {
             List<String> commandList = new ArrayList<>();
-            commandList.add("签到");
-            commandList.add("骰子说明");
             commandList.add("叫车");
-            commandList.add("余额");
-            commandList.add("我有多少钱");
             return content.startsWith("#") || commandList.stream().anyMatch(content::contains);
         }
         return false;
@@ -104,6 +100,7 @@ public class RepeaterListener {
     /**
      * 比较Neko
      * 如果type和id都相同，则相同
+     *
      * @param nekoA nekoA
      * @param nekoB nekoB
      */

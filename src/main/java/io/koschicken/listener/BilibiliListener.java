@@ -7,6 +7,9 @@ import io.koschicken.bean.bilibili.BiliUser;
 import io.koschicken.bean.bilibili.Following;
 import io.koschicken.bean.bilibili.Video;
 import io.koschicken.bean.bilibili.space.Space;
+import io.koschicken.bot.Bilibili;
+import io.koschicken.bot.Groups;
+import io.koschicken.config.GroupConfig;
 import io.koschicken.utils.URLUtils;
 import io.koschicken.utils.bilibili.BilibiliUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +24,6 @@ import love.forte.simbot.filter.MatchType;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpException;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -38,15 +40,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static io.koschicken.constants.Constants.CONFIG_DIR;
-import static io.koschicken.intercept.BotIntercept.GROUP_BILIBILI_MAP;
-import static io.koschicken.intercept.BotIntercept.GROUP_CONFIG_MAP;
 
 @Slf4j
 @Service
 public class BilibiliListener {
 
-    @Autowired
-    private MessageContentBuilderFactory factory;
+    private final MessageContentBuilderFactory factory;
+
+    public BilibiliListener(MessageContentBuilderFactory factory) {
+        this.factory = factory;
+    }
 
     @OnGroup
     @Filter(value = "/fo", matchType = MatchType.STARTS_WITH)
@@ -95,7 +98,7 @@ public class BilibiliListener {
     public void followingList(GroupMsg groupMsg, Sender sender) throws IOException, HttpException {
         BilibiliUtils.bilibiliJSON();
         String groupCode = groupMsg.getGroupInfo().getGroupCode();
-        List<Following> followings = GROUP_BILIBILI_MAP.get(groupCode);
+        List<Following> followings = Bilibili.getInstance().get(groupCode);
         dealName(followings, groupCode);
         if (CollectionUtils.isEmpty(followings)) {
             sender.sendGroupMsg(groupMsg, "本群没有关注任何直播间");
@@ -125,7 +128,7 @@ public class BilibiliListener {
     public void videoInfo(GroupMsg groupMsg, Sender sender) {
         String baseUrl = "https://www.bilibili.com/video/";
         String msg = groupMsg.getMsg();
-        Pattern pattern = Pattern.compile("https?://(|www.)bilibili.com/video/[/\\S]+");
+        Pattern pattern = Pattern.compile("https?://(|www.)bilibili.com/video/\\S+");
         Matcher m = pattern.matcher(msg);
         while (m.find()) {
             try {
@@ -142,7 +145,8 @@ public class BilibiliListener {
                         .append("\n链接：").append(baseUrl).append(video.getBv()).append(t);
                 if (!stringBuilder.isEmpty()) {
                     String groupCode = groupMsg.getGroupInfo().getGroupCode();
-                    if (Objects.nonNull(GROUP_CONFIG_MAP.get(groupCode)) && GROUP_CONFIG_MAP.get(groupCode).isGlobalSwitch()) {
+                    GroupConfig groupConfig = Groups.getInstance().get(groupCode);
+                    if (Objects.nonNull(groupConfig) && groupConfig.isGlobalSwitch()) {
                         sender.sendGroupMsg(groupCode, stringBuilder.toString());
                     }
                 }
@@ -164,7 +168,7 @@ public class BilibiliListener {
     }
 
     private boolean isFollowed(String groupCode, String uid) {
-        List<Following> followingList = GROUP_BILIBILI_MAP.get(groupCode);
+        List<Following> followingList = Bilibili.getInstance().get(groupCode);
         if (CollectionUtils.isEmpty(followingList)) {
             return false;
         }
@@ -173,32 +177,22 @@ public class BilibiliListener {
 
     private void follow(String groupCode, String uid, String name) throws IOException {
         BilibiliUtils.bilibiliJSON();
-        List<Following> followingList = GROUP_BILIBILI_MAP.get(groupCode);
+        List<Following> followingList = Bilibili.getInstance().get(groupCode);
         if (CollectionUtils.isEmpty(followingList)) {
             followingList = new ArrayList<>();
         }
         followingList.add(new Following(uid, name, true, false, System.currentTimeMillis()));
-        GROUP_BILIBILI_MAP.remove(groupCode);
-        GROUP_BILIBILI_MAP.put(groupCode, followingList);
-        String jsonString = JSON.toJSONString(GROUP_BILIBILI_MAP);
-        File jsonFile = new File(CONFIG_DIR + "/bilibili.json");
-        FileUtils.deleteQuietly(jsonFile);
-        FileUtils.writeStringToFile(jsonFile, jsonString, StandardCharsets.UTF_8);
+        updateConfig(groupCode, followingList);
     }
 
     private void unfollow(String groupCode, String uid) throws IOException {
         BilibiliUtils.bilibiliJSON();
-        List<Following> followingList = GROUP_BILIBILI_MAP.get(groupCode);
+        List<Following> followingList = Bilibili.getInstance().get(groupCode);
         int index = indexOf(followingList, uid);
         if (index >= 0) {
             followingList.remove(index);
         }
-        GROUP_BILIBILI_MAP.remove(groupCode);
-        GROUP_BILIBILI_MAP.put(groupCode, followingList);
-        String jsonString = JSON.toJSONString(GROUP_BILIBILI_MAP);
-        File jsonFile = new File(CONFIG_DIR + "/bilibili.json");
-        FileUtils.deleteQuietly(jsonFile);
-        FileUtils.writeStringToFile(jsonFile, jsonString, StandardCharsets.UTF_8);
+        updateConfig(groupCode, followingList);
     }
 
     private int indexOf(List<Following> followingList, String uid) {
@@ -229,36 +223,16 @@ public class BilibiliListener {
             }
         }
         if (callAPICount > 0) {
-            GROUP_BILIBILI_MAP.remove(groupCode);
-            GROUP_BILIBILI_MAP.put(groupCode, followings);
-            String jsonString = JSON.toJSONString(GROUP_BILIBILI_MAP);
-            File jsonFile = new File(CONFIG_DIR + "/bilibili.json");
-            FileUtils.deleteQuietly(jsonFile);
-            FileUtils.writeStringToFile(jsonFile, jsonString, StandardCharsets.UTF_8);
+            updateConfig(groupCode, followings);
             log.info("使用API获取了{}个B站数据", callAPICount);
         }
     }
 
-    public static void main(String[] args) {
-        String msg = "123222https://www.bilibili.com/video/BV1t34y1E7m3\n" +
-                "https://www.bilibili.com/video/BV1Uv4y1N7ih?t=13&spm_id_from=333.999.0.0";
-        Pattern pattern = Pattern.compile("https?://(|www.)bilibili.com/video/[/\\S]+(?)");
-        Matcher m = pattern.matcher(msg);
-        while (m.find()) {
-            String group = m.group();
-            System.out.println(group);
-            try {
-                URL url = new URL(group);
-                String path = url.getPath();
-                System.out.println(path.substring(path.lastIndexOf("/") + 1));
-                Map<String, String> queryMap = URLUtils.getQueryMap(url.getQuery());
-                System.out.println(queryMap.get("t"));
-                if (Objects.nonNull(queryMap.get("t"))) {
-                    System.out.println("?t=" + queryMap.get("t"));
-                }
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            }
-        }
+    private static void updateConfig(String groupCode, List<Following> followingList) throws IOException {
+        Bilibili.getInstance().put(groupCode, followingList);
+        String jsonString = JSON.toJSONString(Bilibili.getInstance());
+        File jsonFile = new File(CONFIG_DIR + "/bilibili.json");
+        FileUtils.deleteQuietly(jsonFile);
+        FileUtils.writeStringToFile(jsonFile, jsonString, StandardCharsets.UTF_8);
     }
 }

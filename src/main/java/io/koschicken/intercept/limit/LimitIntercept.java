@@ -1,6 +1,6 @@
 package io.koschicken.intercept.limit;
 
-import io.koschicken.constants.Constants;
+import io.koschicken.config.BotConfig;
 import love.forte.simbot.api.message.events.GroupMsg;
 import love.forte.simbot.api.message.events.MsgGet;
 import love.forte.simbot.api.sender.BotSender;
@@ -10,7 +10,6 @@ import love.forte.simbot.listener.ListenerFunction;
 import love.forte.simbot.listener.ListenerInterceptContext;
 import love.forte.simbot.listener.ListenerInterceptor;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -25,8 +24,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class LimitIntercept implements ListenerInterceptor {
 
     @Lazy
-    @Autowired
-    private BotManager botManager;
+    private final BotManager botManager;
+
+    public LimitIntercept(BotManager botManager) {
+        this.botManager = botManager;
+    }
 
     /**
      * limit map
@@ -74,7 +76,7 @@ public class LimitIntercept implements ListenerInterceptor {
             }
             if (isCode) {
                 code = msgGet.getAccountInfo().getAccountCode();
-                if (Objects.equals(Constants.commonConfig.getMasterQQ(), code)) {
+                if (Objects.equals(BotConfig.getInstance().getMasterQQ(), code)) {
                     return InterceptionType.ALLOW;
                 }
                 keyStringBuilder.append(code);

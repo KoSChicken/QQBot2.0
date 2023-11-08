@@ -31,10 +31,10 @@ public class ListenLimit {
 
     public int remaining() {
         final long now = System.currentTimeMillis();
-        if (!expired()) {
-            return (int) (invalidTime - now) / 1000;
-        } else {
+        if (expired()) {
             return 0;
+        } else {
+            return (int) (invalidTime - now) / 1000;
         }
     }
 }

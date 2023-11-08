@@ -1,34 +1,23 @@
 package io.koschicken.intercept;
 
-import com.alibaba.fastjson.JSON;
-import io.koschicken.bean.GroupPower;
-import io.koschicken.bean.bilibili.Following;
-import io.koschicken.constants.Constants;
+import io.koschicken.bot.Groups;
+import io.koschicken.config.BotConfig;
+import io.koschicken.config.GroupConfig;
+import io.koschicken.utils.ConfigFileUtils;
 import lombok.extern.slf4j.Slf4j;
 import love.forte.simbot.api.message.events.GroupMsg;
 import love.forte.simbot.api.message.events.MsgGet;
 import love.forte.simbot.intercept.InterceptionType;
 import love.forte.simbot.listener.MsgInterceptContext;
 import love.forte.simbot.listener.MsgInterceptor;
-import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-
-import static io.koschicken.constants.Constants.CONFIG_DIR;
 
 @Slf4j
 @Service
 public class BotIntercept implements MsgInterceptor {
-
-    public static Map<String, GroupPower> GROUP_CONFIG_MAP = new ConcurrentHashMap<>(10);
-    public static Map<String, List<Following>> GROUP_BILIBILI_MAP = new ConcurrentHashMap<>(10);
 
     @NotNull
     @Override
@@ -37,60 +26,39 @@ public class BotIntercept implements MsgInterceptor {
         if (msgGet instanceof GroupMsg groupMsg) {
             String groupCode = groupMsg.getGroupInfo().getGroupCode();
             String msg = groupMsg.getMsg();
-            GroupPower groupPower = GROUP_CONFIG_MAP.get(groupCode);
-            if (Objects.isNull(groupPower)) {
-                groupPower = initGroupPower(groupCode);
+            GroupConfig groupConfig = Groups.getInstance().get(groupCode);
+            // 当该群组配置不存在时，初始化并保存到配置文件中
+            if (Objects.isNull(groupConfig)) {
+                groupConfig = initGroupConfig(groupCode);
             }
-            //总体开关
-            if (!groupPower.isGlobalSwitch()) {
-                String masterQQ = Constants.commonConfig.getMasterQQ();
+            // 总体开关
+            if (!groupConfig.isGlobalSwitch()) {
+                BotConfig botConfig = BotConfig.getInstance();
+                String masterQQ = botConfig.getMasterQQ();
                 String qq = groupMsg.getAccountInfo().getAccountCode();
                 if (isOpen(msg) && Objects.equals(masterQQ, qq)) return InterceptionType.ALLOW;
                 return InterceptionType.BLOCK;
             }
-            //抽卡消息过滤
-            if (isChouKa(msg)) {
-                if (groupPower.isGachaSwitch()) return InterceptionType.ALLOW;
-                return InterceptionType.BLOCK;
-            }
-            //赛马消息过滤
-            if (isHorse(msg)) {
-                if (groupPower.isHorseSwitch()) return InterceptionType.ALLOW;
-                return InterceptionType.BLOCK;
-            }
-            //骰子消息过滤
+            // 骰子消息过滤
             if (isDice(msg)) {
-                if (groupPower.isDiceSwitch()) return InterceptionType.ALLOW;
+                if (groupConfig.isDiceSwitch()) return InterceptionType.ALLOW;
                 return InterceptionType.BLOCK;
             }
-            //setu消息过滤
+            // setu消息过滤
             if (isSetu(msg)) {
-                if (groupPower.isSetuSwitch()) return InterceptionType.ALLOW;
+                if (groupConfig.isSetuSwitch()) return InterceptionType.ALLOW;
                 return InterceptionType.BLOCK;
             }
         }
         return InterceptionType.ALLOW;
     }
 
-    private GroupPower initGroupPower(String groupCode) {
-        GroupPower groupPower = new GroupPower();
-        groupPower.setGlobalSwitch(Constants.commonConfig.isGlobalSwitch());
-        groupPower.setMaiyaoSwitch(Constants.commonConfig.isMaiyaoSwitch());
-        groupPower.setGachaSwitch(Constants.commonConfig.isGachaSwitch());
-        groupPower.setHorseSwitch(Constants.commonConfig.isDiceSwitch());
-        groupPower.setHorseSwitch(Constants.commonConfig.isSetuSwitch());
-        GROUP_CONFIG_MAP.put(groupCode, groupPower);
-        setJson(GROUP_CONFIG_MAP);
-        return groupPower;
-    }
-
-    private boolean isChouKa(String msg) {
-        return msg.startsWith("#十连") || msg.startsWith("#up十连") || msg.startsWith("#井")
-                || msg.startsWith("#up井") || msg.startsWith("#抽卡") || msg.startsWith("#up抽卡");
-    }
-
-    private boolean isHorse(String msg) {
-        return msg.startsWith("#赛") || msg.startsWith("#开始赛") || msg.startsWith("押马");
+    private GroupConfig initGroupConfig(String groupCode) {
+        GroupConfig groupConfig = new GroupConfig();
+        Groups groups = Groups.getInstance();
+        groups.put(groupCode, groupConfig);
+        ConfigFileUtils.updateGroupConfig(groups);
+        return groupConfig;
     }
 
     private boolean isDice(String msg) {
@@ -100,23 +68,10 @@ public class BotIntercept implements MsgInterceptor {
 
     private boolean isSetu(String msg) {
         return msg.startsWith("叫车") || msg.startsWith("叫車") || msg.startsWith("#抽奖") || msg.startsWith("#mjx")
-                || msg.contains("色图") || msg.contains("涩图")|| msg.contains("色圖") || msg.contains("澀圖");
+                || msg.contains("色图") || msg.contains("涩图") || msg.contains("色圖") || msg.contains("澀圖");
     }
 
     private boolean isOpen(String msg) {
         return "/on".equals(msg);
-    }
-
-    private synchronized void setJson(Map<String, GroupPower> map) {
-        String jsonObject = JSON.toJSONString(map);
-        try {
-            File file = new File(CONFIG_DIR + "/config.json");
-            if (!file.exists() || !file.isFile()) {
-                FileUtils.touch(file);
-            }
-            FileUtils.write(file, jsonObject, "utf-8");
-        } catch (IOException e) {
-            log.error("群组配置创建异常：", e);
-        }
     }
 }

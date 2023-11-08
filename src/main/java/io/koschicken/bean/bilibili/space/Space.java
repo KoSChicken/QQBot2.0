@@ -4,6 +4,7 @@ import cn.hutool.core.net.URLEncodeUtil;
 import cn.hutool.crypto.SecureUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import io.koschicken.config.BilibiliConfig;
 import io.koschicken.utils.HttpUtils;
 import io.koschicken.utils.bilibili.BilibiliUtils;
 import io.koschicken.utils.bilibili.WbiUtils;
@@ -20,7 +21,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.StringJoiner;
 
-import static io.koschicken.constants.Constants.commonConfig;
 import static org.springframework.util.ResourceUtils.isUrl;
 
 @Slf4j
@@ -78,7 +78,7 @@ public class Space {
 
     public static Space getSpace(String mid) throws IOException, HttpException {
         String url = "https://api.bilibili.com/x/space/wbi/acc/info?mid=" + mid + "&token=&platform=web&" + generateWrid();
-        String json = HttpUtils.get(url, commonConfig.getBilibiliCookie());
+        String json = HttpUtils.get(url, BilibiliConfig.getInstance().getCookie());
         JSONObject jsonObject = JSON.parseObject(json);
         Integer code = jsonObject.getInteger("code");
         if (code == 0) {
@@ -103,7 +103,7 @@ public class Space {
         map.put("baz", 1919810);
         map.put("wts", System.currentTimeMillis() / 1000);
         StringJoiner param = new StringJoiner("&");
-        //排序 + 拼接字符串
+        // 排序 + 拼接字符串
         map.entrySet().stream()
                 .sorted(Map.Entry.comparingByKey())
                 .forEach(entry -> param.add(entry.getKey() + "=" + URLEncodeUtil.encode(entry.getValue().toString())));
@@ -114,7 +114,7 @@ public class Space {
 
     private static JSONObject navWbiImg() throws IOException {
         String url = "https://api.bilibili.com/x/web-interface/nav";
-        String json = HttpUtils.get(url, commonConfig.getBilibiliCookie());
+        String json = HttpUtils.get(url, BilibiliConfig.getInstance().getCookie());
         JSONObject jsonObject = JSON.parseObject(json);
         return jsonObject.getJSONObject("data").getJSONObject("wbi_img");
     }

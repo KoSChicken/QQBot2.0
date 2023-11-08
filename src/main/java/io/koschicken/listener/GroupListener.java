@@ -1,6 +1,8 @@
 package io.koschicken.listener;
 
 import catcode.CatCodeUtil;
+import io.koschicken.bot.Groups;
+import io.koschicken.config.GroupConfig;
 import io.koschicken.utils.URLUtils;
 import lombok.extern.slf4j.Slf4j;
 import love.forte.common.ioc.annotation.Beans;
@@ -19,8 +21,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Objects;
-
-import static io.koschicken.intercept.BotIntercept.GROUP_CONFIG_MAP;
 
 /**
  * 群消息监听的示例类。
@@ -57,7 +57,7 @@ public class GroupListener {
     @Filter(atBot = true)
     public void zuichou(GroupMsg groupMsg, Sender sender) throws IOException {
         String api = "http://81.70.100.130/api/Ridicule.php?msg=";
-        String string = Request.Get(api + RandomUtils.nextInt(1,6)).execute().returnContent().asString();
+        String string = Request.Get(api + RandomUtils.nextInt(1, 6)).execute().returnContent().asString();
         sender.sendGroupMsg(groupMsg, string);
     }
 
@@ -74,11 +74,13 @@ public class GroupListener {
             stringBuilder.append(msg).append("\n").append(description);
             if (!stringBuilder.isEmpty()) {
                 String groupCode = groupMsg.getGroupInfo().getGroupCode();
-                if (Objects.nonNull(GROUP_CONFIG_MAP.get(groupCode)) && GROUP_CONFIG_MAP.get(groupCode).isGlobalSwitch()) {
+                GroupConfig groupConfig = Groups.getInstance().get(groupCode);
+                if (Objects.nonNull(groupConfig) && groupConfig.isGlobalSwitch()) {
                     sender.sendGroupMsg(groupCode, stringBuilder.toString());
                 }
             }
         } catch (MalformedURLException ignore) {
+            // testing URL
         } catch (IOException e) {
             log.error("获取网页简介失败");
         }
@@ -93,29 +95,6 @@ public class GroupListener {
      */
     @OnGroup
     public void onGroupMsg(GroupMsg groupMsg) {
-        // 打印此次消息中的 纯文本消息内容。
-        // 纯文本消息中，不会包含任何特殊消息（例如图片、表情等）。
-//        System.out.println(groupMsg.getText());
-
-        // 打印此次消息中的 消息内容。
-        // 消息内容会包含所有的消息内容，也包括特殊消息。特殊消息使用CAT码进行表示。
-        // 需要注意的是，绝大多数情况下，getMsg() 的效率低于甚至远低于 getText()
-//        System.out.println(groupMsg.getMsg());
-
-        // 获取此次消息中的 消息主体。
-        // messageContent代表消息主体，其中通过可以获得 msg, 以及特殊消息列表。
-        // 特殊消息列表为 List<Neko>, 其中，Neko是CAT码的封装类型。
-//        MessageContent msgContent = groupMsg.getMsgContent();
-
-        // 打印消息主体
-        // System.out.println(msgContent);
-        // 打印消息主体中的所有图片的链接（如果有的话）
-//        List<Neko> imageCats = msgContent.getCats("image");
-//        System.out.println("img counts: " + imageCats.size());
-//        for (Neko image : imageCats) {
-//            System.out.println("Img url: " + image.get("url"));
-//        }
-
         // 获取发消息的人。
         GroupAccountInfo accountInfo = groupMsg.getAccountInfo();
         // 发消息者的账号与昵称。

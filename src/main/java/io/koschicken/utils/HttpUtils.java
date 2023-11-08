@@ -18,18 +18,20 @@ import java.util.zip.GZIPInputStream;
 @Slf4j
 public class HttpUtils {
 
+    public static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:80.0) Gecko/20100101 Firefox/80.0";
+
     private HttpUtils() {
     }
 
     public static String get(String getUrl) throws IOException {
         return Request.Get(getUrl)
-                .setHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:80.0) Gecko/20100101 Firefox/80.0")
+                .setHeader("User-Agent", USER_AGENT)
                 .execute().returnContent().asString(StandardCharsets.UTF_8);
     }
 
     public static String get(String getUrl, String cookies) throws IOException {
         return Request.Get(getUrl)
-                .setHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:80.0) Gecko/20100101 Firefox/80.0")
+                .setHeader("User-Agent", USER_AGENT)
                 .setHeader("Cookie", cookies)
                 .execute().returnContent().asString(StandardCharsets.UTF_8);
     }
@@ -79,7 +81,7 @@ public class HttpUtils {
                     in.close();
                 }
             } catch (Exception e2) {
-                e2.printStackTrace();
+                log.error("", e2);
             }
         }
     }

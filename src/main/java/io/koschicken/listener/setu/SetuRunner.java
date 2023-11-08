@@ -2,6 +2,7 @@ package io.koschicken.listener.setu;
 
 import io.koschicken.bean.setu.LoliconResponse;
 import io.koschicken.bean.setu.Pixiv;
+import io.koschicken.config.BotConfig;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import love.forte.simbot.api.message.MessageContent;
@@ -26,8 +27,6 @@ import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static io.koschicken.constants.Constants.commonConfig;
 
 @Slf4j
 @Data
@@ -147,7 +146,7 @@ public class SetuRunner implements Callable<LoliconResponse> {
     }
 
     private boolean tagCheck(String tag) {
-        String tags = commonConfig.getSetuBlackTags();
+        String tags = BotConfig.getInstance().getSetuBlackTags();
         if (StringUtils.isEmpty(tags)) {
             return false;
         }

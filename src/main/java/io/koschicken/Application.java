@@ -26,7 +26,6 @@ public class Application {
     public static void main(String[] args) throws IOException {
         ExternalProperties externalProperties = new ExternalProperties();
         externalProperties.init();
-        InitConfig.initConfigs();
         initFolders();
         FixProtocolVersion.fetch(BotConfiguration.MiraiProtocol.ANDROID_PAD, "latest");
         FixProtocolVersion.load(BotConfiguration.MiraiProtocol.ANDROID_PAD);

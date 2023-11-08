@@ -6,6 +6,8 @@ import com.alibaba.fastjson.JSONObject;
 import io.koschicken.bean.bilibili.BiliUser;
 import io.koschicken.bean.bilibili.Following;
 import io.koschicken.bean.bilibili.Video;
+import io.koschicken.bot.Bilibili;
+import io.koschicken.config.BilibiliConfig;
 import io.koschicken.utils.HttpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -13,15 +15,14 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import static io.koschicken.constants.Constants.commonConfig;
 import static io.koschicken.constants.Constants.CONFIG_DIR;
-import static io.koschicken.intercept.BotIntercept.GROUP_BILIBILI_MAP;
 
 @Slf4j
 public class BilibiliUtils {
@@ -31,9 +32,9 @@ public class BilibiliUtils {
 
     public static void bilibiliJSON() {
         File jsonFile = new File(CONFIG_DIR + "/bilibili.json");
-        //群组设定
+        // 群组设定
         if (!jsonFile.exists() || !jsonFile.isFile()) {
-            //没有读取到配置文件
+            // 没有读取到配置文件
             try {
                 FileUtils.touch(jsonFile);
             } catch (IOException e) {
@@ -48,7 +49,7 @@ public class BilibiliUtils {
                     for (String key : keySet) {
                         String byGroup = jsonObject.getJSONArray(key).toJSONString();
                         List<Following> value = JSON.parseArray(byGroup, Following.class);
-                        GROUP_BILIBILI_MAP.put(key, value);
+                        Bilibili.getInstance().put(key, value);
                     }
                 }
             } catch (IOException | NullPointerException e) {
@@ -59,7 +60,7 @@ public class BilibiliUtils {
 
     public static BiliUser searchByName(String name) throws IOException {
         String url = "https://api.bilibili.com/x/web-interface/search/type?search_type=bili_user&keyword=";
-        String json = HttpUtils.get(url + name, commonConfig.getBilibiliCookie());
+        String json = HttpUtils.get(url + name, BilibiliConfig.getInstance().getCookie());
         JSONObject jsonObject = JSON.parseObject(json);
         JSONObject data = jsonObject.getJSONObject("data");
         if (Objects.nonNull(data)) {
@@ -78,13 +79,22 @@ public class BilibiliUtils {
     }
 
     public static void main(String[] args) {
-//        String url = "http://i0.hdslb.com/bfs/live/new_room_cover/2b3955ab074e0d7fb9fcf849bb217de0b24c9d06.jpg";
-//        String imageName = getImageName(new URL(url));
-//        System.out.println(imageName);
+        try {
+            String imageName = getImageName(new URL("http://i0.hdslb.com/bfs/live/new_room_cover/2b3955ab074e0d7fb9fcf849bb217de0b24c9d06.jpg"));
+            log.info("{}", imageName);
+        } catch (MalformedURLException e) {
+            log.error("", e);
+        }
         String url = "https://www.bilibili.com/video/BV1t34y1E7m3";
         String bv = url.substring(url.lastIndexOf("/") + 1);
-        System.out.println(bv);
+        log.info("{}", bv);
         Video video = new Video(bv, true);
-        System.out.println(video);
+        log.info("{}", video);
+        try {
+            BiliUser user = searchByName("KoSChicken");
+            log.info("{}", user);
+        } catch (IOException e) {
+            log.error("", e);
+        }
     }
 }
