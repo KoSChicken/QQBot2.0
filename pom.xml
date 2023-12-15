@@ -8,7 +8,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.5</version>
+        <version>3.1.2</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -61,7 +61,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-logging</artifactId>
-            <version>3.0.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
         </dependency>
 
         <!-- Apache -->
@@ -94,10 +99,10 @@
         </dependency>
 
         <dependency>
-             <groupId>com.google.guava</groupId>
-             <artifactId>guava</artifactId>
-             <version>32.0.0-jre</version>
-         </dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>32.0.0-jre</version>
+        </dependency>
 
         <dependency>
             <groupId>org.jsoup</groupId>
@@ -112,21 +117,17 @@
         </dependency>
 
         <dependency>
-            <groupId>xyz.cssxsh.mirai.tool</groupId>
-            <artifactId>fix-protocol-version</artifactId>
-            <version>1.9.10</version>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
+            <groupId>top.mrxiaom</groupId>
+            <artifactId>qsign</artifactId>
+            <version>1.1.0-beta</version>
+            <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>top.yumbo.music</groupId>
+            <artifactId>yumbo-music-utils</artifactId>
+            <version>1.2.3</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -139,29 +140,6 @@
                     <source>17</source>
                     <target>17</target>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-install-plugin</artifactId>
-                <version>2.5.2</version>
-                <executions>
-                    <execution>
-                        <id>install-fix-protocol-version</id>
-                        <phase>clean</phase>
-                        <configuration>
-                            <file>${project.basedir}/resource/fix-protocol-version-1.9.10.mirai2.jar</file>
-                            <repositoryLayout>default</repositoryLayout>
-                            <groupId>xyz.cssxsh.mirai.tool</groupId>
-                            <artifactId>fix-protocol-version</artifactId>
-                            <version>1.9.10</version>
-                            <packaging>jar</packaging>
-                            <generatePom>true</generatePom>
-                        </configuration>
-                        <goals>
-                            <goal>install-file</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

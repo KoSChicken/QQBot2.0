@@ -2,12 +2,11 @@ package io.koschicken;
 
 import io.koschicken.config.ExternalProperties;
 import love.forte.simbot.spring.autoconfigure.EnableSimbot;
-import net.mamoe.mirai.utils.BotConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import xyz.cssxsh.mirai.tool.FixProtocolVersion;
+import top.mrxiaom.qsign.QSignService;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,8 +26,7 @@ public class Application {
         ExternalProperties externalProperties = new ExternalProperties();
         externalProperties.init();
         initFolders();
-        FixProtocolVersion.fetch(BotConfiguration.MiraiProtocol.ANDROID_PAD, "latest");
-        FixProtocolVersion.load(BotConfiguration.MiraiProtocol.ANDROID_PAD);
+        setup();
         SpringApplication.run(Application.class, args);
     }
 
@@ -49,5 +47,11 @@ public class Application {
         if (!meowFolder.exists()) {
             FileUtils.forceMkdir(meowFolder);
         }
+    }
+
+    public static void setup() {
+        QSignService.Factory.init(new File("./qsign/txlib/8.9.88"));
+        QSignService.Factory.loadProtocols(null);
+        QSignService.Factory.register();
     }
 }
